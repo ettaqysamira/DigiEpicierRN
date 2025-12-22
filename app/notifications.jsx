@@ -43,7 +43,6 @@ export default function NotificationsScreen() {
 
     return (
         <View className="flex-1 bg-white">
-            {/* Header */}
             <SafeAreaView className="bg-green-700">
                 <View className="px-5 pt-2 pb-6 flex-row justify-between items-center">
                     <View className="flex-row items-center">

@@ -15,7 +15,6 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-gray-50">
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
-        {/* Header */}
         <View className="flex-row justify-between items-center bg-green-700 px-5 pb-6 pt-4 mb-4 rounded-b-[24px]">
           <Text className="text-2xl font-bold text-white">Digi'Épicier</Text>
           <View className="flex-row items-center">
@@ -39,7 +38,7 @@ export default function DashboardScreen() {
           <ActionButtons />
 
           <View className="mt-6">
-            <SummaryCard title="Chiffre d'affaires du jour" value="520.30 €" trend="8.2%" color="green" />
+            <SummaryCard title="Chiffre d'affaires du jour" value="52030 DH" trend="8.2%" color="green" />
           </View>
 
           <RecentSales />

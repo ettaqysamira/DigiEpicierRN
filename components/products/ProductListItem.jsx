@@ -49,7 +49,6 @@ export default function ProductListItem({ product }) {
             </View>
 
             <View className="items-end justify-between h-full pl-2">
-                {/* Status Badge */}
                 <View className={`px-2 py-1 rounded-full mb-4 ${bgClass}`}>
                     <Text className={`text-[10px] font-bold ${textClass}`}>{statusText}</Text>
                 </View>
