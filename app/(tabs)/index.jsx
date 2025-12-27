@@ -16,7 +16,7 @@ export default function DashboardScreen() {
     <SafeAreaView edges={['top']} className="flex-1 bg-gray-50">
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
         <View className="flex-row justify-between items-center bg-green-700 px-5 pb-6 pt-4 mb-4 rounded-b-[24px]">
-          <Text className="text-2xl font-bold text-white">Digi'Épicier</Text>
+          <Text className="text-2xl font-bold text-white">Hanooty</Text>
           <View className="flex-row items-center">
             <TouchableOpacity
               onPress={() => router.push('/notifications')}
