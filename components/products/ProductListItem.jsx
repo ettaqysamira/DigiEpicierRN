@@ -40,7 +40,7 @@ export default function ProductListItem({ product }) {
 
                 <View className="flex-row items-center justify-between mt-1">
                     <View className="flex-row items-center">
-                        <Text className="text-green-700 font-bold text-lg mr-3">{product.price} €</Text>
+                        <Text className="text-green-700 font-bold text-lg mr-3">{product.price} DH</Text>
                         <View className="bg-gray-100 px-2 py-1 rounded-md">
                             <Text className="text-gray-600 text-xs font-semibold">Qté: {product.quantity}</Text>
                         </View>

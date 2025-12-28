@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
 import { Bell, LogOut } from 'lucide-react-native';
-import { Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth } from '../../firebaseConfig';
 
@@ -15,26 +15,35 @@ import SummaryCard from '../../components/dashboard/SummaryCard';
 export default function DashboardScreen() {
   const router = useRouter();
 
-  const handleLogout = () => {
-    Alert.alert(
-      "Déconnexion",
-      "Êtes-vous sûr de vouloir vous déconnecter ?",
-      [
-        { text: "Annuler", style: "cancel" },
-        {
-          text: "Se déconnecter",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await signOut(auth);
-            } catch (error) {
-              console.error("Logout error:", error);
-              Alert.alert("Erreur", "Impossible de se déconnecter");
-            }
-          }
-        }
-      ]
-    );
+  const handleLogout = async () => {
+    console.log("🖱️ LOGOUT BUTTON PRESSED");
+
+    const performLogout = async () => {
+      try {
+        console.log("⏳ Starting signOut...");
+        await signOut(auth);
+        console.log("✅ signOut successful");
+        router.replace('/(auth)/login');
+      } catch (error) {
+        console.error("❌ Logout error:", error);
+        Alert.alert("Erreur", "Impossible de se déconnecter");
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm("Voulez-vous vraiment vous déconnecter ?")) {
+        await performLogout();
+      }
+    } else {
+      Alert.alert(
+        "Déconnexion",
+        "Êtes-vous sûr de vouloir vous déconnecter ?",
+        [
+          { text: "Annuler", style: "cancel" },
+          { text: "Se déconnecter", style: "destructive", onPress: performLogout }
+        ]
+      );
+    }
   };
 
   return (
@@ -44,10 +53,9 @@ export default function DashboardScreen() {
           <View>
             <Image
               source={require('../../assets/images/logo.png')}
-              className="w-32 h-8"
+              className="w-40 h-10"
               resizeMode="contain"
             />
-            <Text className="text-white/70 text-[10px] ml-1 mt-0.5 font-medium">ESPACE ÉPicier</Text>
           </View>
           <View className="flex-row items-center">
             <TouchableOpacity

@@ -70,7 +70,7 @@ export default function LoginScreen() {
                         <View className="bg-green-700 w-full py-8 rounded-3xl items-center shadow-xl shadow-green-100">
                             <Image
                                 source={require('../../assets/images/logo.png')}
-                                className="w-48 h-12"
+                                className="w-64 h-16"
                                 resizeMode="contain"
                             />
                         </View>

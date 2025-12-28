@@ -13,7 +13,7 @@ export default function CartItem({ item, onIncrement, onDecrement, onRemove }) {
 
             <View className="flex-1">
                 <Text className="text-gray-900 font-bold text-base mb-1" numberOfLines={1}>{item.name}</Text>
-                <Text className="text-green-700 font-bold text-base">{item.price.toFixed(2)} €</Text>
+                <Text className="text-green-700 font-bold text-base">{item.price.toFixed(2)} DH</Text>
             </View>
 
             <View className="items-end">

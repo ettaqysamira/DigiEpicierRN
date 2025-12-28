@@ -52,6 +52,7 @@ function RootLayoutNav() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log("🔥 AUTH_STATE_CHANGED:", user ? "User logged in (" + user.email + ")" : "No user");
       setUser(user);
       if (initializing) setInitializing(false);
     });
@@ -61,9 +62,12 @@ function RootLayoutNav() {
 
   useEffect(() => {
     if (!initializing) {
+      console.log("🚀 REDIRECT CHECK - User state:", user ? "LoggedIn" : "LoggedOut");
       if (user) {
+        console.log("-> Navigating to Dashboard");
         router.replace('/(tabs)');
       } else {
+        console.log("-> Navigating to Login");
         router.replace('/(auth)/login');
       }
     }

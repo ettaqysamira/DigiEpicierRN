@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
 import { Bell, ChevronRight, HelpCircle, LogOut, Settings, Shield, User } from 'lucide-react-native';
 import React from 'react';
-import { Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth } from '../../firebaseConfig';
 
@@ -10,26 +10,35 @@ export default function ProfileScreen() {
     const router = useRouter();
     const user = auth.currentUser;
 
-    const handleLogout = () => {
-        Alert.alert(
-            "Déconnexion",
-            "Êtes-vous sûr de vouloir vous déconnecter ?",
-            [
-                { text: "Annuler", style: "cancel" },
-                {
-                    text: "Se déconnecter",
-                    style: "destructive",
-                    onPress: async () => {
-                        try {
-                            await signOut(auth);
-                        } catch (error) {
-                            console.error("Logout error:", error);
-                            Alert.alert("Erreur", "Impossible de se déconnecter");
-                        }
-                    }
-                }
-            ]
-        );
+    const handleLogout = async () => {
+        console.log("👤 PROFILE LOGOUT BUTTON PRESSED");
+
+        const performLogout = async () => {
+            try {
+                console.log("⏳ Starting Profile signOut...");
+                await signOut(auth);
+                console.log("✅ Profile signOut successful");
+                router.replace('/(auth)/login');
+            } catch (error) {
+                console.error("❌ Profile Logout error:", error);
+                Alert.alert("Erreur", "Impossible de se déconnecter");
+            }
+        };
+
+        if (Platform.OS === 'web') {
+            if (window.confirm("Voulez-vous vraiment vous déconnecter ?")) {
+                await performLogout();
+            }
+        } else {
+            Alert.alert(
+                "Déconnexion",
+                "Êtes-vous sûr de vouloir vous déconnecter ?",
+                [
+                    { text: "Annuler", style: "cancel" },
+                    { text: "Se déconnecter", style: "destructive", onPress: performLogout }
+                ]
+            );
+        }
     };
 
     const ProfileItem = ({ icon: Icon, title, subtitle, onPress }) => (

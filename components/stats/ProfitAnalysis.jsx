@@ -18,7 +18,7 @@ export default function ProfitAnalysis() {
                         <DollarSign size={20} color="#2E7D32" />
                     </View>
                     <Text className="text-gray-500 text-sm mb-1">Chiffre d'affaires</Text>
-                    <Text className="text-green-800 font-bold text-xl">8450 €</Text>
+                    <Text className="text-green-800 font-bold text-xl">8450 DH</Text>
                 </View>
 
                 <View className="bg-white p-4 rounded-2xl w-[48%] shadow-sm">
@@ -26,14 +26,14 @@ export default function ProfitAnalysis() {
                         <ShoppingCart size={20} color="#F57C00" />
                     </View>
                     <Text className="text-gray-500 text-sm mb-1">Coûts d'achat</Text>
-                    <Text className="text-orange-600 font-bold text-xl">5890 €</Text>
+                    <Text className="text-orange-600 font-bold text-xl">5890 DH</Text>
                 </View>
             </View>
 
             <View className="bg-white p-5 rounded-2xl shadow-sm mb-4">
                 <View className="flex-row justify-between items-center mb-2">
                     <Text className="text-gray-900 font-bold text-base">Bénéfice net</Text>
-                    <Text className="text-green-800 font-bold text-2xl">2560 €</Text>
+                    <Text className="text-green-800 font-bold text-2xl">2560 DH</Text>
                 </View>
 
                 <View className="h-2 bg-gray-100 rounded-full overflow-hidden mb-2">

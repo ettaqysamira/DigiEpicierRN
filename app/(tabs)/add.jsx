@@ -61,7 +61,7 @@ export default function AddProductScreen() {
                     <View className="w-[48%]">
                         <Text className="text-gray-900 font-bold text-base mb-2">Prix d'achat *</Text>
                         <View className="bg-white border border-gray-200 rounded-xl px-4 h-14 flex-row items-center shadow-sm">
-                            <Text className="text-gray-400 mr-2">€</Text>
+                            <Text className="text-gray-400 mr-2">DH</Text>
                             <TextInput
                                 placeholder="0,00"
                                 keyboardType="numeric"
@@ -72,7 +72,7 @@ export default function AddProductScreen() {
                     <View className="w-[48%]">
                         <Text className="text-gray-900 font-bold text-base mb-2">Prix de vente *</Text>
                         <View className="bg-white border border-gray-200 rounded-xl px-4 h-14 flex-row items-center shadow-sm">
-                            <Text className="text-gray-400 mr-2">€</Text>
+                            <Text className="text-gray-400 mr-2">DH</Text>
                             <TextInput
                                 placeholder="0,00"
                                 keyboardType="numeric"
