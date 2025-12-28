@@ -1,7 +1,7 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { Tabs } from 'expo-router';
-import { BarChart2, Home, Package, PlusCircle, ShoppingCart, User } from 'lucide-react-native';
+import { Home, Package, PlusCircle, ShoppingCart, User } from 'lucide-react-native';
 import React from 'react';
 
 export default function TabLayout() {
@@ -25,8 +25,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="products"
         options={{
-          title: 'Produits',
+          title: 'Stock',
           tabBarIcon: ({ color }) => <Package size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="add"
+        options={{
+          title: 'Ajouter',
+          tabBarIcon: ({ color }) => <PlusCircle size={26} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -34,20 +41,6 @@ export default function TabLayout() {
         options={{
           title: 'Vente',
           tabBarIcon: ({ color }) => <ShoppingCart size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="add"
-        options={{
-          title: 'Ajouter',
-          tabBarIcon: ({ color }) => <PlusCircle size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="stats"
-        options={{
-          title: 'Stats',
-          tabBarIcon: ({ color }) => <BarChart2 size={24} color={color} />,
         }}
       />
       <Tabs.Screen

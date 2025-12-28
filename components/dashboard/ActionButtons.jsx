@@ -34,7 +34,7 @@ export default function ActionButtons() {
                 </TouchableOpacity>
             </Link>
 
-            <Link href="/products" asChild>
+            <Link href="/add" asChild>
                 <TouchableOpacity className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex-1 ml-2 items-center justify-center py-6">
                     <View className="bg-orange-100 p-3 rounded-full mb-2">
                         <Plus size={24} color="#F57C00" />
