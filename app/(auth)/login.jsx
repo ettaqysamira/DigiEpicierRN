@@ -1,9 +1,12 @@
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Eye, EyeOff, Lock, Mail, Store } from 'lucide-react-native';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
+    Alert,
     Dimensions,
+    Image,
     KeyboardAvoidingView,
     Platform,
     SafeAreaView,
@@ -12,20 +15,45 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { auth } from '../../firebaseConfig';
 
 const { width } = Dimensions.get('window');
 
 export default function LoginScreen() {
-    const [email, setEmail] = useState('');
+    const [email, setEmail] = useState('ettaqy.samira@gmail.com');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         if (email && password) {
-            router.replace('/(tabs)');
+            setIsLoading(true);
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                router.replace('/(tabs)');
+            } catch (error) {
+                console.error("Login error:", error);
+                let errorMessage = "Une erreur est survenue lors de la connexion.";
+
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    errorMessage = "Email ou mot de passe incorrect.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Format d'email invalide.";
+                } else if (error.code === 'auth/network-request-failed') {
+                    errorMessage = "Problème de connexion réseau. Veuillez vérifier votre accès internet.";
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMessage = "Trop de tentatives échouées. Veuillez réessayer plus tard.";
+                } else if (error.code === 'auth/configuration-not-found') {
+                    errorMessage = "Le service d'authentification n'est pas configuré. Veuillez contacter le support.";
+                }
+
+                Alert.alert("Erreur de connexion", errorMessage);
+            } finally {
+                setIsLoading(false);
+            }
         } else {
-            alert('Veuillez remplir tous les champs');
+            Alert.alert('Champs requis', 'Veuillez remplir tous les champs.');
         }
     };
 
@@ -37,16 +65,17 @@ export default function LoginScreen() {
                 className="flex-1"
             >
                 <View className="flex-1 px-8 justify-center">
-                    {/* Logo / Branding Placeholder */}
-                    <View className="items-center mb-12">
-                        <View className="w-20 h-20 bg-green-700 rounded-3xl items-center justify-center shadow-xl shadow-green-200">
-                            <Store color="white" size={40} />
+                    {/* Brand Logo Header */}
+                    <View className="items-center mb-10">
+                        <View className="bg-green-700 w-full py-8 rounded-3xl items-center shadow-xl shadow-green-100">
+                            <Image
+                                source={require('../../assets/images/logo.png')}
+                                className="w-48 h-12"
+                                resizeMode="contain"
+                            />
                         </View>
-                        <Text className="text-3xl font-bold text-gray-800 mt-6 tracking-tight">
-                           Hanooty
-                        </Text>
-                        <Text className="text-gray-500 mt-2 text-center text-base">
-                            Simplifiez la gestion de votre épicerie
+                        <Text className="text-gray-500 mt-6 text-center text-base font-medium">
+                            Portail de Gestion Épicier
                         </Text>
                     </View>
 
@@ -92,33 +121,27 @@ export default function LoginScreen() {
                         </View>
 
                         {/* Forgot Password */}
-                        <TouchableOpacity className="mt-2 items-end">
+                        <TouchableOpacity className="mt-3 items-end">
                             <Text className="text-green-700 font-medium">Mot de passe oublié ?</Text>
                         </TouchableOpacity>
 
                         {/* Login Button */}
                         <TouchableOpacity
-                            className="bg-green-700 h-16 rounded-2xl items-center justify-center mt-8 shadow-lg shadow-green-200 active:bg-green-800"
+                            className={`bg-green-700 h-16 rounded-2xl items-center justify-center mt-10 shadow-lg shadow-green-200 ${isLoading ? 'opacity-70' : 'active:bg-green-800'}`}
                             onPress={handleLogin}
+                            disabled={isLoading}
                         >
-                            <Text className="text-white text-lg font-bold">Se connecter</Text>
+                            <Text className="text-white text-lg font-bold">
+                                {isLoading ? 'Connexion...' : 'SE CONNECTER'}
+                            </Text>
                         </TouchableOpacity>
                     </View>
 
-                    {/* Bottom Help Text */}
+                    {/* Bottom Links */}
                     <View className="mt-12 items-center">
                         <Text className="text-gray-400 text-sm">
-                            En vous connectant, vous acceptez nos
+                            Propulsé par Hanooty Digital
                         </Text>
-                        <View className="flex-row">
-                            <TouchableOpacity>
-                                <Text className="text-green-700 text-sm font-medium">Conditions d'utilisation</Text>
-                            </TouchableOpacity>
-                            <Text className="text-gray-400 text-sm"> et </Text>
-                            <TouchableOpacity>
-                                <Text className="text-green-700 text-sm font-medium">Confidentialité</Text>
-                            </TouchableOpacity>
-                        </View>
                     </View>
                 </View>
             </KeyboardAvoidingView>

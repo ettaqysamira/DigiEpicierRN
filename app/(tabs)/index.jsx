@@ -1,7 +1,9 @@
 import { useRouter } from 'expo-router';
-import { BarChart2, Bell } from 'lucide-react-native';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { signOut } from 'firebase/auth';
+import { Bell, LogOut } from 'lucide-react-native';
+import { Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { auth } from '../../firebaseConfig';
 
 import ActionButtons from '../../components/dashboard/ActionButtons';
 import AlertCards from '../../components/dashboard/AlertCards';
@@ -12,11 +14,41 @@ import SummaryCard from '../../components/dashboard/SummaryCard';
 
 export default function DashboardScreen() {
   const router = useRouter();
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Déconnexion",
+      "Êtes-vous sûr de vouloir vous déconnecter ?",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Se déconnecter",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await signOut(auth);
+            } catch (error) {
+              console.error("Logout error:", error);
+              Alert.alert("Erreur", "Impossible de se déconnecter");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-gray-50">
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
         <View className="flex-row justify-between items-center bg-green-700 px-5 pb-6 pt-4 mb-4 rounded-b-[24px]">
-          <Text className="text-2xl font-bold text-white">Hanooty</Text>
+          <View>
+            <Image
+              source={require('../../assets/images/logo.png')}
+              className="w-32 h-8"
+              resizeMode="contain"
+            />
+            <Text className="text-white/70 text-[10px] ml-1 mt-0.5 font-medium">ESPACE ÉPicier</Text>
+          </View>
           <View className="flex-row items-center">
             <TouchableOpacity
               onPress={() => router.push('/notifications')}
@@ -25,8 +57,11 @@ export default function DashboardScreen() {
               <Bell size={20} color="white" />
               <View className="absolute top-1 right-2 bg-red-500 rounded-full w-3 h-3 justify-center items-center border border-white" />
             </TouchableOpacity>
-            <TouchableOpacity className="bg-white/20 p-2 rounded-full">
-              <BarChart2 size={20} color="white" />
+            <TouchableOpacity
+              onPress={handleLogout}
+              className="bg-white/20 p-2 rounded-full"
+            >
+              <LogOut size={20} color="white" />
             </TouchableOpacity>
           </View>
         </View>
@@ -43,7 +78,7 @@ export default function DashboardScreen() {
 
           <RecentSales />
 
-+          <View className="mt-2">
+          <View className="mt-2">
             <SalesChart />
             <CategoryPieChart />
           </View>
