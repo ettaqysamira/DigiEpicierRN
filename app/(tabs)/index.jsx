@@ -76,7 +76,6 @@ export default function DashboardScreen() {
             </View>
           </View>
 
-          {/* New Prominent Add Button */}
           <TouchableOpacity
             onPress={() => router.push('/add')}
             className="bg-white p-4 rounded-2xl flex-row items-center shadow-lg active:bg-gray-50"

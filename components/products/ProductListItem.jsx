@@ -1,4 +1,5 @@
-import { Image, Text, View } from 'react-native';
+import { HelpCircle } from 'lucide-react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 const parseDate = (dateStr) => {
     if (!dateStr) return new Date();
@@ -6,61 +7,70 @@ const parseDate = (dateStr) => {
     return new Date(year, month - 1, day);
 };
 
-const getStatusColor = (quantity, expirationDate) => {
-    if (quantity < 5) return 'bg-orange-100 text-orange-700';
+const getStatusStyles = (quantity, expirationDate) => {
     const today = new Date();
     const exp = parseDate(expirationDate);
     const diffTime = exp - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    if (diffDays < 7) return 'bg-red-100 text-red-700';
-    return 'bg-green-100 text-green-700';
+
+    if (diffDays < 7) {
+        return {
+            bg: 'bg-orange-50',
+            text: 'text-orange-600',
+            label: 'Expire bientôt'
+        };
+    }
+
+    return {
+        bg: 'bg-green-50',
+        text: 'text-green-700',
+        label: 'En stock'
+    };
 };
 
-const getStatusText = (quantity, expirationDate) => {
-    if (quantity < 5) return 'Stock faible';
-    const today = new Date();
-    const exp = parseDate(expirationDate);
-    const diffTime = exp - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    if (diffDays < 7) return 'Expire bientôt';
-    return 'En stock';
-};
-
-export default function ProductListItem({ product }) {
-    const statusClass = getStatusColor(product.quantity, product.expirationDate);
-    const statusText = getStatusText(product.quantity, product.expirationDate);
-
-    const bgClass = statusClass.split(' ')[0];
-    const textClass = statusClass.split(' ')[1];
+export default function ProductListItem({ product, onPress }) {
+    const { bg, text, label } = getStatusStyles(product.quantity, product.expirationDate);
 
     return (
-        <View className="bg-white p-4 rounded-xl shadow-sm mb-3 flex-row items-center border border-gray-100">
+        <TouchableOpacity
+            onPress={() => onPress && onPress(product)}
+            activeOpacity={0.7}
+            className="bg-white p-3 rounded-2xl mb-3 flex-row items-center border border-gray-100 shadow-sm"
+        >
             <Image
                 source={{ uri: product.image || 'https://via.placeholder.com/100' }}
-                className="w-16 h-16 rounded-lg bg-gray-100 mr-4"
+                className="w-20 h-20 rounded-xl bg-gray-100 mr-4"
+                resizeMode="cover"
             />
 
-            <View className="flex-1">
-                <Text className="text-gray-900 font-bold text-base mb-1">{product.name}</Text>
-                <Text className="text-gray-500 text-xs mb-2">{product.category}</Text>
+            <View className="flex-1 justify-center">
+                <Text className="text-gray-900 font-bold text-lg leading-tight mb-0.5" numberOfLines={1}>
+                    {product.name}
+                </Text>
+                <Text className="text-gray-400 text-sm mb-2">{product.category}</Text>
 
-                <View className="flex-row items-center justify-between mt-1">
-                    <View className="flex-row items-center">
-                        <Text className="text-green-700 font-bold text-lg mr-3">{product.price} DH</Text>
-                        <View className="bg-gray-100 px-2 py-1 rounded-md">
-                            <Text className="text-gray-600 text-xs font-semibold">Qté: {product.quantity}</Text>
-                        </View>
+                <View className="flex-row items-center">
+                    <Text className="text-green-700 font-bold text-xl mr-3">
+                        {parseFloat(product.price).toFixed(2)} DH
+                    </Text>
+                    <View className="bg-green-50 px-3 py-1 rounded-full">
+                        <Text className="text-green-700 text-xs font-bold">
+                            Qté: {product.quantity}
+                        </Text>
                     </View>
                 </View>
             </View>
 
-            <View className="items-end justify-between h-full pl-2">
-                <View className={`px-2 py-1 rounded-full mb-4 ${bgClass}`}>
-                    <Text className={`text-[10px] font-bold ${textClass}`}>{statusText}</Text>
+            <View className="items-end justify-between self-stretch py-1">
+                <View className={`flex-row items-center px-2 py-1 rounded-full ${bg}`}>
+                    <HelpCircle size={14} color={text === 'text-green-700' ? '#15803d' : '#ea580c'} />
+                    <Text className={`ml-1 text-[11px] font-bold ${text}`}>{label}</Text>
                 </View>
 
-                <Text className="text-gray-400 text-[10px]">Exp: {product.expirationDate}</Text>
+                <Text className="text-gray-400 text-[11px] font-medium">
+                    Exp: {product.expirationDate}
+                </Text>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 }

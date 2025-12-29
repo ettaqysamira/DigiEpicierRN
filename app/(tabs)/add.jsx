@@ -1,7 +1,7 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { Camera as CameraIcon, ChevronDown, List, Save, Scan, X } from 'lucide-react-native';
+import { Barcode, Camera as CameraIcon, ChevronDown, List, Save, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
     ActivityIndicator,
@@ -28,6 +28,10 @@ export default function AddProductScreen() {
     const [barcode, setBarcode] = useState('');
     const [description, setDescription] = useState('');
     const [productImage, setProductImage] = useState(null);
+    const [brand, setBrand] = useState('');
+    const [ingredients, setIngredients] = useState('');
+    const [nutriments, setNutriments] = useState(null);
+    const [nutriscore, setNutriscore] = useState('');
 
     const [permission, requestPermission] = useCameraPermissions();
     const [scanned, setScanned] = useState(false);
@@ -48,6 +52,10 @@ export default function AddProductScreen() {
                 setName(product.product_name || '');
                 setCategory(product.categories_tags ? product.categories_tags[0].replace('en:', '').replace('fr:', '') : '');
                 setProductImage(product.image_url || null);
+                setBrand(product.brands || '');
+                setIngredients(product.ingredients_text_fr || product.ingredients_text || '');
+                setNutriments(product.nutriments || null);
+                setNutriscore(product.nutriscore_grade || '');
                 setDescription(product.generic_name_fr || product.generic_name || '');
                 Alert.alert("Produit trouvé !", `${product.product_name} a été détecté.`);
             } else {
@@ -91,6 +99,10 @@ export default function AddProductScreen() {
             const productData = {
                 name,
                 category,
+                brand,
+                ingredients,
+                nutriments,
+                nutriscore,
                 purchasePrice: parseFloat(purchasePrice),
                 sellingPrice: parseFloat(sellingPrice),
                 quantity: parseInt(quantity),
@@ -191,7 +203,7 @@ export default function AddProductScreen() {
                         onPress={openScanner}
                         className="bg-green-700 w-14 h-14 items-center justify-center rounded-xl shadow-md"
                     >
-                        <Scan size={26} color="white" />
+                        <Barcode size={26} color="white" />
                     </TouchableOpacity>
                 </View>
 
@@ -300,7 +312,6 @@ export default function AddProductScreen() {
                 </TouchableOpacity>
             </View>
 
-            {/* Scanner Modal */}
             <Modal
                 visible={isScannerVisible}
                 animationType="slide"

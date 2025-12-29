@@ -65,7 +65,6 @@ export default function LoginScreen() {
                 className="flex-1"
             >
                 <View className="flex-1 px-8 justify-center">
-                    {/* Brand Logo Header */}
                     <View className="items-center mb-10">
                         <View className="bg-green-700 w-full py-8 rounded-3xl items-center shadow-xl shadow-green-100">
                             <Image
@@ -80,7 +79,6 @@ export default function LoginScreen() {
                     </View>
 
                     <View className="space-y-6">
-                        {/* Email Input */}
                         <View>
                             <Text className="text-gray-700 font-semibold mb-2 ml-1">Email</Text>
                             <View className="flex-row items-center bg-gray-50 rounded-2xl border border-gray-100 px-4 h-16 shadow-sm">
@@ -97,8 +95,7 @@ export default function LoginScreen() {
                             </View>
                         </View>
 
-                        {/* Password Input */}
-                        <View className="mt-4">
+*                        <View className="mt-4">
                             <Text className="text-gray-700 font-semibold mb-2 ml-1">Mot de passe</Text>
                             <View className="flex-row items-center bg-gray-50 rounded-2xl border border-gray-100 px-4 h-16 shadow-sm">
                                 <Lock size={22} color="#9ca3af" className="mr-3" />
@@ -120,12 +117,10 @@ export default function LoginScreen() {
                             </View>
                         </View>
 
-                        {/* Forgot Password */}
                         <TouchableOpacity className="mt-3 items-end">
                             <Text className="text-green-700 font-medium">Mot de passe oublié ?</Text>
                         </TouchableOpacity>
 
-                        {/* Login Button */}
                         <TouchableOpacity
                             className={`bg-green-700 h-16 rounded-2xl items-center justify-center mt-10 shadow-lg shadow-green-200 ${isLoading ? 'opacity-70' : 'active:bg-green-800'}`}
                             onPress={handleLogin}
@@ -137,7 +132,6 @@ export default function LoginScreen() {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Bottom Links */}
                     <View className="mt-12 items-center">
                         <Text className="text-gray-400 text-sm">
                             Propulsé par Hanooty Digital

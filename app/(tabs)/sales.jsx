@@ -1,4 +1,4 @@
-import { Banknote, CreditCard, Landmark, Scan, Search, ShoppingCart, Smartphone } from 'lucide-react-native';
+import { Banknote, Barcode, CreditCard, Landmark, Search, ShoppingCart, Smartphone } from 'lucide-react-native';
 import { useState } from 'react';
 import { FlatList, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -55,7 +55,7 @@ export default function SalesScreen() {
                             />
                         </View>
                         <TouchableOpacity className="bg-white ml-3 w-14 h-14 items-center justify-center rounded-2xl shadow-sm">
-                            <Scan size={24} color="#2E7D32" />
+                            <Barcode size={24} color="#2E7D32" />
                         </TouchableOpacity>
                     </View>
                 </View>

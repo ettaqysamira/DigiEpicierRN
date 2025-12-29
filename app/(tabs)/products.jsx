@@ -1,9 +1,11 @@
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ProductDetailsModal from '../../components/products/ProductDetailsModal';
 import ProductListItem from '../../components/products/ProductListItem';
 import ProductsHeader from '../../components/products/ProductsHeader';
 import { db } from '../../firebaseConfig';
@@ -11,7 +13,14 @@ import { db } from '../../firebaseConfig';
 export default function ProductsScreen() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const router = useRouter();
+
+    const handleProductPress = (product) => {
+        setSelectedProduct(product);
+        setIsModalVisible(true);
+    };
 
     useEffect(() => {
         const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
@@ -38,6 +47,7 @@ export default function ProductsScreen() {
 
     return (
         <View className="flex-1 bg-gray-50">
+            <StatusBar style="light" />
             <SafeAreaView edges={['top']} className="bg-green-700">
                 <ProductsHeader />
             </SafeAreaView>
@@ -62,16 +72,27 @@ export default function ProductsScreen() {
                     <FlatList
                         data={products}
                         keyExtractor={item => item.id}
-                        renderItem={({ item }) => <ProductListItem product={item} />}
+                        renderItem={({ item }) => (
+                            <ProductListItem
+                                product={item}
+                                onPress={handleProductPress}
+                            />
+                        )}
                         showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 100 }}
+                        contentContainerStyle={{ paddingBottom: 100, paddingTop: 4 }}
                     />
                 )}
             </View>
 
+            <ProductDetailsModal
+                visible={isModalVisible}
+                product={selectedProduct}
+                onClose={() => setIsModalVisible(false)}
+            />
+
             <TouchableOpacity
                 onPress={() => router.push('/add')}
-                className="absolute bottom-10 right-6 bg-green-700 w-16 h-16 rounded-full items-center justify-center shadow-2xl z-50 border-4 border-white"
+                className="absolute bottom-6 right-6 bg-green-800 w-16 h-16 rounded-2xl items-center justify-center shadow-lg z-50 border-2 border-green-600/20"
             >
                 <Plus size={32} color="white" />
             </TouchableOpacity>

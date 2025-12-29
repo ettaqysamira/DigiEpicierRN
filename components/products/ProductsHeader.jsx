@@ -1,32 +1,51 @@
-import { Filter, Plus, Scan, Search } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { ArrowLeft, Barcode, Menu, Plus, Search, SlidersHorizontal } from 'lucide-react-native';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function ProductsHeader() {
+    const router = useRouter();
+
     return (
-        <View className="bg-green-700 px-4 pt-2 pb-6 rounded-b-[24px]">
-            <View className="flex-row justify-between items-center mb-4">
-                <Text className="text-white text-2xl font-bold">Gestion des Produits</Text>
-                <View className="flex-row">
-                    <TouchableOpacity className="bg-white/20 p-2 rounded-full mr-2">
-                        <Plus size={24} color="white" />
+        <View className="bg-green-700 px-4 pt-4 pb-6 rounded-b-[32px]">
+            <View className="flex-row justify-between items-center mb-6">
+                <View className="flex-row items-center flex-1">
+                    <TouchableOpacity onPress={() => router.back()} className="mr-4">
+                        <ArrowLeft size={28} color="white" />
                     </TouchableOpacity>
-                    <TouchableOpacity className="bg-white/20 p-2 rounded-full">
-                        <Filter size={24} color="white" />
+                    <Text className="text-white text-2xl font-bold flex-1" numberOfLines={1}>
+                        Gestion des Prod...
+                    </Text>
+                </View>
+                <View className="flex-row items-center">
+                    <TouchableOpacity className="p-2">
+                        <Plus size={28} color="white" />
+                    </TouchableOpacity>
+                    <TouchableOpacity className="p-2 ml-2">
+                        <Menu size={28} color="white" />
                     </TouchableOpacity>
                 </View>
             </View>
 
-            <View className="flex-row items-center space-x-2">
-                <View className="flex-1 bg-white flex-row items-center rounded-xl px-4 h-12">
-                    <Search size={20} color="gray" />
+            <View className="flex-row items-center space-x-3">
+                <View className="flex-1 bg-white flex-row items-center rounded-2xl px-4 h-14 shadow-sm">
+                    <Search size={22} color="#9CA3AF" />
                     <TextInput
                         placeholder="Rechercher par nom..."
-                        className="flex-1 ml-2 text-gray-800"
+                        className="flex-1 ml-3 text-gray-800 text-base"
                         placeholderTextColor="#9CA3AF"
                     />
                 </View>
-                <TouchableOpacity className="bg-green-800 w-12 h-12 items-center justify-center rounded-xl border border-green-600">
-                    <Scan size={24} color="white" />
+
+                <TouchableOpacity
+                    className="bg-green-800 w-14 h-14 items-center justify-center rounded-2xl shadow-sm border border-green-600/30"
+                >
+                    <Barcode size={28} color="white" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    className="bg-white w-14 h-14 items-center justify-center rounded-2xl shadow-sm border border-gray-100"
+                >
+                    <SlidersHorizontal size={26} color="#374151" />
                 </TouchableOpacity>
             </View>
         </View>

@@ -11,16 +11,16 @@ export default function ProfileScreen() {
     const user = auth.currentUser;
 
     const handleLogout = async () => {
-        console.log("👤 PROFILE LOGOUT BUTTON PRESSED");
+        console.log("PROFILE LOGOUT BUTTON PRESSED");
 
         const performLogout = async () => {
             try {
-                console.log("⏳ Starting Profile signOut...");
+                console.log("Starting Profile signOut...");
                 await signOut(auth);
-                console.log("✅ Profile signOut successful");
+                console.log("Profile signOut successful");
                 router.replace('/(auth)/login');
             } catch (error) {
-                console.error("❌ Profile Logout error:", error);
+                console.error("Profile Logout error:", error);
                 Alert.alert("Erreur", "Impossible de se déconnecter");
             }
         };
@@ -60,7 +60,6 @@ export default function ProfileScreen() {
     return (
         <SafeAreaView className="flex-1 bg-gray-50">
             <ScrollView className="flex-1 px-5 pt-4">
-                {/* Header Profile */}
                 <View className="items-center mb-8">
                     <View className="w-24 h-24 bg-green-700 rounded-full items-center justify-center shadow-lg shadow-green-200 mb-4">
                         <User size={50} color="white" />
@@ -69,7 +68,6 @@ export default function ProfileScreen() {
                     <Text className="text-gray-500">{user?.email}</Text>
                 </View>
 
-                {/* Settings Groups */}
                 <View className="mb-6">
                     <Text className="text-gray-400 font-bold text-xs uppercase mb-3 ml-2">Compte & Sécurité</Text>
                     <ProfileItem icon={Settings} title="Paramètres du magasin" subtitle="Informations sur votre boutique" />
@@ -82,7 +80,6 @@ export default function ProfileScreen() {
                     <ProfileItem icon={HelpCircle} title="Aide & Support" subtitle="Centre d'aide Hanooty" />
                 </View>
 
-                {/* Logout Button */}
                 <TouchableOpacity
                     onPress={handleLogout}
                     className="flex-row items-center justify-center bg-red-50 p-4 rounded-2xl border border-red-100 mb-10"
