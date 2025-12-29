@@ -1,19 +1,25 @@
 import { Image, Text, View } from 'react-native';
 
+const parseDate = (dateStr) => {
+    if (!dateStr) return new Date();
+    const [day, month, year] = dateStr.split('/').map(Number);
+    return new Date(year, month - 1, day);
+};
+
 const getStatusColor = (quantity, expirationDate) => {
-    if (quantity < 5) return 'bg-orange-100 text-orange-700'; 
+    if (quantity < 5) return 'bg-orange-100 text-orange-700';
     const today = new Date();
-    const exp = new Date(expirationDate);
+    const exp = parseDate(expirationDate);
     const diffTime = exp - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    if (diffDays < 7) return 'bg-red-100 text-red-700'; 
-    return 'bg-green-100 text-green-700'; 
+    if (diffDays < 7) return 'bg-red-100 text-red-700';
+    return 'bg-green-100 text-green-700';
 };
 
 const getStatusText = (quantity, expirationDate) => {
     if (quantity < 5) return 'Stock faible';
     const today = new Date();
-    const exp = new Date(expirationDate);
+    const exp = parseDate(expirationDate);
     const diffTime = exp - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     if (diffDays < 7) return 'Expire bientôt';

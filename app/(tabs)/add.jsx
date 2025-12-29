@@ -1,5 +1,6 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Camera as CameraIcon, ChevronDown, List, Save, Scan, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
@@ -14,6 +15,7 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { db } from '../../firebaseConfig';
 
 export default function AddProductScreen() {
     const router = useRouter();
@@ -31,6 +33,8 @@ export default function AddProductScreen() {
     const [scanned, setScanned] = useState(false);
     const [isScannerVisible, setIsScannerVisible] = useState(false);
     const [isFetchingInfo, setIsFetchingInfo] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [expirationDate, setExpirationDate] = useState('');
 
     const fetchProductFromOFF = async (code) => {
         setIsFetchingInfo(true);
@@ -76,6 +80,42 @@ export default function AddProductScreen() {
         setIsScannerVisible(true);
     };
 
+    const handleSaveProduct = async () => {
+        if (!name || !category || !purchasePrice || !sellingPrice || !quantity) {
+            Alert.alert("Champs manquants", "Veuillez remplir tous les champs obligatoires (*)");
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const productData = {
+                name,
+                category,
+                purchasePrice: parseFloat(purchasePrice),
+                sellingPrice: parseFloat(sellingPrice),
+                quantity: parseInt(quantity),
+                barcode,
+                description,
+                image: productImage,
+                expirationDate,
+                createdAt: serverTimestamp(),
+            };
+
+            await addDoc(collection(db, "products"), productData);
+
+            Alert.alert(
+                "Succès",
+                "Produit ajouté au stock !",
+                [{ text: "OK", onPress: () => router.back() }]
+            );
+        } catch (error) {
+            console.error("Firestore Save Error:", error);
+            Alert.alert("Erreur", "Impossible d'enregistrer le produit.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     return (
         <View className="flex-1 bg-white">
             <SafeAreaView edges={['top']} className="bg-green-700">
@@ -84,8 +124,15 @@ export default function AddProductScreen() {
                         <X size={24} color="white" />
                     </TouchableOpacity>
                     <Text className="text-white text-xl font-bold">Ajouter un produit</Text>
-                    <TouchableOpacity onPress={() => Alert.alert("Succès", "Produit enregistré !")}>
-                        <Text className="text-white font-bold text-base">Enregistrer</Text>
+                    <TouchableOpacity
+                        onPress={handleSaveProduct}
+                        disabled={isSaving}
+                    >
+                        {isSaving ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <Text className="text-white font-bold text-base">Enregistrer</Text>
+                        )}
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
@@ -214,6 +261,8 @@ export default function AddProductScreen() {
                                 placeholder="DD/MM/YYYY"
                                 className="text-base text-gray-800"
                                 placeholderTextColor="#9CA3AF"
+                                value={expirationDate}
+                                onChangeText={setExpirationDate}
                             />
                         </View>
                     </View>
@@ -236,11 +285,18 @@ export default function AddProductScreen() {
 
             <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
                 <TouchableOpacity
-                    className="bg-green-700 py-4 rounded-2xl items-center flex-row justify-center shadow-lg"
-                    onPress={() => Alert.alert("Enregistrement", "Produit ajouté au stock !")}
+                    className={`py-4 rounded-2xl items-center flex-row justify-center shadow-lg ${isSaving ? 'bg-green-600 opacity-70' : 'bg-green-700'}`}
+                    onPress={handleSaveProduct}
+                    disabled={isSaving}
                 >
-                    <Save size={22} color="white" className="mr-2" />
-                    <Text className="text-white font-bold text-lg ml-2">Enregistrer le produit</Text>
+                    {isSaving ? (
+                        <ActivityIndicator color="white" className="mr-2" />
+                    ) : (
+                        <Save size={22} color="white" className="mr-2" />
+                    )}
+                    <Text className="text-white font-bold text-lg ml-2">
+                        {isSaving ? "Enregistrement..." : "Enregistrer le produit"}
+                    </Text>
                 </TouchableOpacity>
             </View>
 
