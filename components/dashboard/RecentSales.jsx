@@ -1,9 +1,9 @@
 import { useRouter } from 'expo-router';
-import { collection, limit, onSnapshot, orderBy, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, query } from 'firebase/firestore';
 import { Receipt } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
-import { db } from '../../firebaseConfig';
+import { auth, db } from '../../firebaseConfig';
 
 export default function RecentSales() {
     const router = useRouter();
@@ -12,48 +12,53 @@ export default function RecentSales() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Query for the 5 most recent sales
-        const recentQuery = query(
-            collection(db, "sales"),
-            orderBy("timestamp", "desc"),
-            limit(5)
-        );
+        const q = query(collection(db, "sales"));
 
-        const unsubscribeRecent = onSnapshot(recentQuery, (snapshot) => {
-            const salesData = snapshot.docs.map(doc => {
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const currentUserId = auth.currentUser?.uid;
+            if (!currentUserId) {
+                setRecentSales([]);
+                setTodayCount(0);
+                setLoading(false);
+                return;
+            }
+
+            const now = new Date();
+            const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            let todaySalesCount = 0;
+            const allSales = [];
+
+            snapshot.forEach((doc) => {
                 const data = doc.data();
-                return {
-                    id: doc.id,
-                    items: data.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0,
-                    amount: `${data.total || 0} DH`,
-                    time: formatRelativeTime(data.timestamp),
-                    rawTimestamp: data.timestamp
-                };
+                if (data.userId === currentUserId) {
+                    const saleDate = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
+
+                    if (saleDate >= startOfDay) {
+                        todaySalesCount++;
+                    }
+
+                    allSales.push({
+                        id: doc.id,
+                        items: data.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0,
+                        amount: `${data.total || 0} DH`,
+                        time: formatRelativeTime(data.timestamp),
+                        rawTimestamp: saleDate
+                    });
+                }
             });
-            setRecentSales(salesData);
+
+            allSales.sort((a, b) => b.rawTimestamp - a.rawTimestamp);
+
+            setRecentSales(allSales.slice(0, 5));
+            setTodayCount(todaySalesCount);
             setLoading(false);
         }, (error) => {
-            console.error("Error fetching recent sales:", error);
+            console.error("Error fetching sales data:", error);
             setLoading(false);
         });
 
-        // Query for today's sales count
-        const startOfDay = new Date();
-        startOfDay.setHours(0, 0, 0, 0);
-
-        const todayQuery = query(
-            collection(db, "sales"),
-            where("timestamp", ">=", startOfDay)
-        );
-
-        const unsubscribeToday = onSnapshot(todayQuery, (snapshot) => {
-            setTodayCount(snapshot.size);
-        });
-
-        return () => {
-            unsubscribeRecent();
-            unsubscribeToday();
-        };
+        return () => unsubscribe();
     }, []);
 
     const formatRelativeTime = (timestamp) => {

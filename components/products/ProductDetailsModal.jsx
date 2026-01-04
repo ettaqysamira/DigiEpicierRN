@@ -1,19 +1,54 @@
-import { ChevronDown, ChevronUp, Factory, Info, Scale, X } from 'lucide-react-native';
+import { ChevronDown, ChevronUp, Info, Pencil, Scale, Trash2, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function ProductDetailsModal({ visible, product, onClose }) {
+export default function ProductDetailsModal({ visible, product, onClose, onDelete, onEdit }) {
     const [isTableExpanded, setIsTableExpanded] = useState(true);
 
     if (!product) return null;
 
     const nutriscoreData = {
-        'a': { label: 'Nutri-Score A', desc: 'Très bonne qualité nutritionnelle', color: 'bg-green-100', dot: 'bg-green-600' },
-        'b': { label: 'Nutri-Score B', desc: 'Bonne qualité nutritionnelle', color: 'bg-green-50', dot: 'bg-green-500' },
-        'c': { label: 'Nutri-Score C', desc: 'Qualité nutritionnelle moyenne', color: 'bg-yellow-50', dot: 'bg-yellow-500' },
-        'd': { label: 'Nutri-Score D', desc: 'Qualité nutritionnelle médiocre', color: 'bg-orange-50', dot: 'bg-orange-500' },
-        'e': { label: 'Nutri-Score E', desc: 'Mauvaise qualité nutritionnelle', color: 'bg-red-50', dot: 'bg-red-600' },
+        'a': {
+            logo: 'https://static.openfoodfacts.org/images/attributes/nutriscore-a.png',
+            label: 'Nutri-Score A',
+            desc: 'Très bonne qualité nutritionnelle',
+            color: 'bg-green-50',
+            borderColor: 'border-green-100',
+            textColor: 'text-green-800'
+        },
+        'b': {
+            logo: 'https://static.openfoodfacts.org/images/attributes/nutriscore-b.png',
+            label: 'Nutri-Score B',
+            desc: 'Bonne qualité nutritionnelle',
+            color: 'bg-green-50/50',
+            borderColor: 'border-green-100',
+            textColor: 'text-green-700'
+        },
+        'c': {
+            logo: 'https://static.openfoodfacts.org/images/attributes/nutriscore-c.png',
+            label: 'Nutri-Score C',
+            desc: 'Qualité nutritionnelle moyenne',
+            color: 'bg-yellow-50',
+            borderColor: 'border-yellow-100',
+            textColor: 'text-yellow-800'
+        },
+        'd': {
+            logo: 'https://static.openfoodfacts.org/images/attributes/nutriscore-d.png',
+            label: 'Nutri-Score D',
+            desc: 'Qualité nutritionnelle médiocre',
+            color: 'bg-orange-50',
+            borderColor: 'border-orange-100',
+            textColor: 'text-orange-800'
+        },
+        'e': {
+            logo: 'https://static.openfoodfacts.org/images/attributes/nutriscore-e.png',
+            label: 'Nutri-Score E',
+            desc: 'Mauvaise qualité nutritionnelle',
+            color: 'bg-red-50',
+            borderColor: 'border-red-100',
+            textColor: 'text-red-800'
+        },
     };
 
     const currentNutri = nutriscoreData[product.nutriscore?.toLowerCase()] || null;
@@ -27,25 +62,35 @@ export default function ProductDetailsModal({ visible, product, onClose }) {
                             <TouchableOpacity onPress={onClose} className="mr-4">
                                 <X size={24} color="#374151" />
                             </TouchableOpacity>
-                            <Text className="text-gray-900 text-xl font-bold">Détails</Text>
+                            <Text className="text-gray-900 text-xl font-bold">Détails du produit</Text>
                         </View>
+                        <TouchableOpacity
+                            onPress={() => onEdit(product)}
+                            className="bg-green-50 p-2 rounded-full"
+                        >
+                            <Pencil size={20} color="#2E7D32" />
+                        </TouchableOpacity>
                     </View>
                 </SafeAreaView>
 
                 <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                    <Image
-                        source={{ uri: product.image || 'https://via.placeholder.com/300' }}
-                        className="w-full h-72 bg-gray-50"
-                        resizeMode="contain"
-                    />
+                    <View className="bg-gray-50 h-72 items-center justify-center p-4">
+                        <Image
+                            source={{ uri: product.image || 'https://via.placeholder.com/300' }}
+                            className="w-full h-full"
+                            resizeMode="contain"
+                        />
+                    </View>
 
                     <View className="p-6">
                         <View className="flex-row justify-between items-start mb-6">
                             <View className="flex-1">
                                 <Text className="text-2xl font-black text-gray-900 leading-tight">{product.name}</Text>
                                 <View className="flex-row items-center mt-2">
-                                    <Factory size={16} color="#9CA3AF" />
-                                    <Text className="text-gray-400 font-medium ml-2 uppercase tracking-wider text-xs">{product.brand || 'Marque inconnue'}</Text>
+                                    <View className="bg-gray-100 px-2 py-1 rounded-md mr-3">
+                                        <Text className="text-gray-500 font-bold text-[10px] uppercase tracking-tighter">Marque</Text>
+                                    </View>
+                                    <Text className="text-gray-500 font-bold tracking-wider text-sm">{product.brand || 'Marque inconnue'}</Text>
                                 </View>
                             </View>
                             <View className="bg-green-700 px-4 py-2 rounded-xl shadow-sm">
@@ -55,21 +100,31 @@ export default function ProductDetailsModal({ visible, product, onClose }) {
 
                         <View className="flex-row items-center mb-6 pt-6 border-t border-gray-100">
                             <Info size={20} color="#374151" />
-                            <Text className="text-lg font-bold text-gray-800 ml-2">Valeurs nutritionnelles et ingrédients</Text>
+                            <Text className="text-lg font-bold text-gray-800 ml-2">Nutrition et Ingrédients</Text>
                         </View>
 
-                        <Text className="text-gray-900 font-bold mb-4">Nutrition</Text>
+                        <Text className="text-gray-900 font-bold mb-4">Nutri-Score</Text>
 
-                        {currentNutri && (
-                            <View className={`${currentNutri.color} p-4 rounded-2xl flex-row items-center mb-8 border border-white`}>
-                                <View className="bg-white p-2 rounded-xl shadow-sm mr-4">
-                                    <Text className={`font-black text-2xl ${currentNutri.dot.replace('bg-', 'text-')}`}>
-                                        {product.nutriscore.toUpperCase()}
-                                    </Text>
+                        {currentNutri ? (
+                            <View className={`${currentNutri.color} p-4 rounded-2xl flex-row items-center mb-8 border ${currentNutri.borderColor}`}>
+                                <Image
+                                    source={{ uri: currentNutri.logo }}
+                                    className="w-20 h-12 mr-4"
+                                    resizeMode="contain"
+                                />
+                                <View className="flex-1">
+                                    <Text className={`font-black text-lg ${currentNutri.textColor}`}>{currentNutri.label}</Text>
+                                    <Text className="text-gray-600 text-xs font-medium mt-0.5">{currentNutri.desc}</Text>
+                                </View>
+                            </View>
+                        ) : (
+                            <View className="bg-gray-50 p-4 rounded-2xl flex-row items-center mb-8 border border-gray-100 border-dashed">
+                                <View className="w-12 h-12 bg-gray-200 rounded-xl items-center justify-center mr-4">
+                                    <Text className="text-gray-400 font-bold">?</Text>
                                 </View>
                                 <View className="flex-1">
-                                    <Text className="font-bold text-gray-900">{currentNutri.label}</Text>
-                                    <Text className="text-gray-600 text-sm mt-0.5">{currentNutri.desc}</Text>
+                                    <Text className="font-bold text-gray-400">Nutri-Score non disponible</Text>
+                                    <Text className="text-gray-400 text-xs">Données insuffisantes</Text>
                                 </View>
                             </View>
                         )}
@@ -117,6 +172,14 @@ export default function ProductDetailsModal({ visible, product, onClose }) {
                                 {product.ingredients || "Liste d'ingrédients non disponible."}
                             </Text>
                         </View>
+
+                        <TouchableOpacity
+                            onPress={() => onDelete(product.id)}
+                            className="bg-red-50 flex-row items-center justify-center p-4 rounded-2xl border border-red-100 mb-8"
+                        >
+                            <Trash2 size={20} color="#EF4444" />
+                            <Text className="text-red-600 font-bold ml-2">Supprimer ce produit</Text>
+                        </TouchableOpacity>
                     </View>
                 </ScrollView>
             </View>

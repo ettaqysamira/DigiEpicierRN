@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestore';
 import { ArrowLeft, Calendar, ChevronRight, Receipt } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { db } from '../firebaseConfig';
+import { auth, db } from '../firebaseConfig';
 
 const TABS = [
     { id: 'today', label: "Aujourd'hui" },
@@ -19,8 +19,10 @@ export default function SalesHistoryScreen() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!auth.currentUser) return;
         const q = query(
             collection(db, "sales"),
+            where("userId", "==", auth.currentUser.uid),
             orderBy("timestamp", "desc")
         );
 
@@ -46,15 +48,22 @@ export default function SalesHistoryScreen() {
 
     const parseDate = (ts) => {
         if (!ts) return null;
-        if (ts.toDate) return ts.toDate();
-        if (ts.seconds) return new Date(ts.seconds * 1000);
-        const d = new Date(ts);
-        return isNaN(d) ? null : d;
+        try {
+            if (typeof ts.toDate === 'function') return ts.toDate();
+            if (ts.seconds !== undefined) return new Date(ts.seconds * 1000);
+            const d = new Date(ts);
+            return isNaN(d.getTime()) ? null : d;
+        } catch (e) {
+            console.error("Error parsing date:", e);
+            return null;
+        }
     };
 
     const filteredSales = useMemo(() => {
         const now = new Date();
+
         const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        startOfToday.setHours(0, 0, 0, 0);
 
         const day = now.getDay();
         const diffToMonday = day === 0 ? 6 : day - 1;
@@ -62,6 +71,7 @@ export default function SalesHistoryScreen() {
         startOfWeek.setHours(0, 0, 0, 0);
 
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        startOfMonth.setHours(0, 0, 0, 0);
 
         return sales.filter(sale => {
             const saleDate = parseDate(sale.timestamp);
@@ -92,7 +102,6 @@ export default function SalesHistoryScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-gray-50">
-            {/* Header */}
             <View className="bg-green-700 px-5 pt-4 pb-8 rounded-b-[32px] shadow-lg">
                 <View className="flex-row items-center mb-6">
                     <TouchableOpacity onPress={() => router.back()} className="bg-white/10 p-2 rounded-full mr-4">
@@ -101,7 +110,6 @@ export default function SalesHistoryScreen() {
                     <Text className="text-white text-2xl font-bold">Historique des ventes</Text>
                 </View>
 
-                {/* Tabs */}
                 <View className="flex-row bg-white/10 p-1.5 rounded-2xl">
                     {TABS.map((tab) => (
                         <TouchableOpacity
@@ -117,7 +125,6 @@ export default function SalesHistoryScreen() {
                 </View>
             </View>
 
-            {/* Summary Info */}
             <View className="px-5 -mt-4 mb-4">
                 <View className="bg-white p-5 rounded-3xl shadow-xl flex-row justify-between items-center border border-gray-100">
                     <View className="flex-1">
@@ -130,7 +137,6 @@ export default function SalesHistoryScreen() {
                 </View>
             </View>
 
-            {/* List */}
             <View className="flex-1 px-5">
                 {loading ? (
                     <View className="flex-1 justify-center items-center">

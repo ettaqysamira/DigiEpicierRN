@@ -4,7 +4,7 @@ import { Banknote, Barcode, CreditCard, Landmark, Search, ShoppingCart, Smartpho
 import { useState } from 'react';
 import { FlatList, Modal, Alert as RNAlert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { db } from '../../firebaseConfig';
+import { auth, db } from '../../firebaseConfig';
 
 import CartItem from '../../components/sales/CartItem';
 import CartSummary from '../../components/sales/CartSummary';
@@ -73,7 +73,11 @@ export default function SalesScreen() {
 
     const findProduct = async (code) => {
         try {
-            const q = query(collection(db, "products"), where("barcode", "==", code));
+            const q = query(
+                collection(db, "products"),
+                where("barcode", "==", code),
+                where("userId", "==", auth.currentUser.uid)
+            );
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
@@ -135,6 +139,7 @@ export default function SalesScreen() {
                 tax,
                 paymentMethod,
                 timestamp: serverTimestamp(),
+                userId: auth.currentUser.uid,
             };
             await addDoc(collection(db, "sales"), saleData);
 

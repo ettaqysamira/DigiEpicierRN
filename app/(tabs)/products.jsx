@@ -1,18 +1,20 @@
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, deleteDoc, doc, onSnapshot, query } from 'firebase/firestore';
 import { Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ProductDetailsModal from '../../components/products/ProductDetailsModal';
 import ProductListItem from '../../components/products/ProductListItem';
 import ProductsHeader from '../../components/products/ProductsHeader';
-import { db } from '../../firebaseConfig';
+import { auth, db } from '../../firebaseConfig';
 
 export default function ProductsScreen() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('Tous');
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const router = useRouter();
@@ -22,18 +24,66 @@ export default function ProductsScreen() {
         setIsModalVisible(true);
     };
 
+    const handleDeleteProduct = async (productId) => {
+        Alert.alert(
+            "Supprimer le produit",
+            "Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible.",
+            [
+                {
+                    text: "Annuler",
+                    style: "cancel"
+                },
+                {
+                    text: "Supprimer",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await deleteDoc(doc(db, "products", productId));
+                            setIsModalVisible(false);
+                        } catch (error) {
+                            console.error("Error deleting product:", error);
+                            Alert.alert("Erreur", "Impossible de supprimer le produit");
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleEditProduct = (product) => {
+        setIsModalVisible(false);
+        router.push({
+            pathname: '/add',
+            params: { id: product.id }
+        });
+    };
+
     useEffect(() => {
-        const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+        const q = query(collection(db, "products"));
 
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const productsData = [];
+            const currentUserId = auth.currentUser?.uid;
+
+            if (!currentUserId) {
+                setLoading(false);
+                return;
+            }
+
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                productsData.push({
-                    id: doc.id,
-                    ...data,
-                    price: data.sellingPrice?.toString() || data.price || '0.00',
-                });
+                if (data.userId === currentUserId) {
+                    productsData.push({
+                        id: doc.id,
+                        ...data,
+                        price: data.sellingPrice?.toString() || data.price || '0.00',
+                    });
+                }
+            });
+            productsData.sort((a, b) => {
+                const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : (a.createdAt ? new Date(a.createdAt) : new Date(0));
+                const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : (b.createdAt ? new Date(b.createdAt) : new Date(0));
+                return dateB - dateA;
             });
             setProducts(productsData);
             setLoading(false);
@@ -43,13 +93,28 @@ export default function ProductsScreen() {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [auth.currentUser]);
+
+    const categories = ['Tous', ...new Set(products.map(p => p.category).filter(Boolean))].filter(c => c !== 'Tous');
+
+    const filteredProducts = products.filter(product => {
+        const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            product.barcode?.includes(searchQuery);
+        const matchesCategory = selectedCategory === 'Tous' || product.category === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
 
     return (
         <View className="flex-1 bg-gray-50">
             <StatusBar style="light" />
             <SafeAreaView edges={['top']} className="bg-green-700">
-                <ProductsHeader />
+                <ProductsHeader
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    selectedCategory={selectedCategory}
+                    setSelectedCategory={setSelectedCategory}
+                    categories={categories}
+                />
             </SafeAreaView>
 
             <View className="flex-1 px-4 pt-4">
@@ -68,9 +133,22 @@ export default function ProductsScreen() {
                             <Text className="text-white font-bold">Ajouter mon premier produit</Text>
                         </TouchableOpacity>
                     </View>
+                ) : filteredProducts.length === 0 ? (
+                    <View className="flex-1 items-center justify-center">
+                        <Text className="text-gray-400 text-base">Aucun produit ne correspond à vos filtres</Text>
+                        <TouchableOpacity
+                            onPress={() => {
+                                setSearchQuery('');
+                                setSelectedCategory('Tous');
+                            }}
+                            className="mt-4"
+                        >
+                            <Text className="text-green-700 font-bold">Réinitialiser les filtres</Text>
+                        </TouchableOpacity>
+                    </View>
                 ) : (
                     <FlatList
-                        data={products}
+                        data={filteredProducts}
                         keyExtractor={item => item.id}
                         renderItem={({ item }) => (
                             <ProductListItem
@@ -88,6 +166,8 @@ export default function ProductsScreen() {
                 visible={isModalVisible}
                 product={selectedProduct}
                 onClose={() => setIsModalVisible(false)}
+                onDelete={handleDeleteProduct}
+                onEdit={handleEditProduct}
             />
 
             <TouchableOpacity

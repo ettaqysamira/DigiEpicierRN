@@ -1,23 +1,42 @@
 import { useRouter } from 'expo-router';
-import { signOut } from 'firebase/auth';
-import { Bell, ChevronRight, HelpCircle, LogOut, Settings, Shield, User } from 'lucide-react-native';
-import React from 'react';
-import { Alert, Image, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { doc, getDoc } from 'firebase/firestore';
+import { Bell, ChevronRight, HelpCircle, LayoutDashboard, LogOut, Settings, Shield, User } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { auth } from '../../firebaseConfig';
+import { auth, db } from '../../firebaseConfig';
 
 export default function ProfileScreen() {
     const router = useRouter();
     const user = auth.currentUser;
+    const [userRole, setUserRole] = useState('epicier');
+
+    useEffect(() => {
+        const fetchUserRole = async () => {
+            if (user) {
+                const adminEmails = ['ettaqy.samira@gmail.com', 'admin@hanooty.com', 'samira.ettaqy@gmail.com'];
+                if (adminEmails.includes(user.email?.toLowerCase())) {
+                    setUserRole('admin');
+                    return;
+                }
+
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        setUserRole(userDoc.data().role);
+                    }
+                } catch (error) {
+                    console.error("Error fetching user role:", error);
+                }
+            }
+        };
+        fetchUserRole();
+    }, [user]);
 
     const handleLogout = async () => {
-        console.log("PROFILE LOGOUT BUTTON PRESSED");
-
         const performLogout = async () => {
             try {
-                console.log("Starting Profile signOut...");
                 await signOut(auth);
-                console.log("Profile signOut successful");
                 router.replace('/(auth)/login');
             } catch (error) {
                 console.error("Profile Logout error:", error);
@@ -41,13 +60,13 @@ export default function ProfileScreen() {
         }
     };
 
-    const ProfileItem = ({ icon: Icon, title, subtitle, onPress }) => (
+    const ProfileItem = ({ icon: Icon, title, subtitle, onPress, color = "#374151", bg = "bg-gray-50" }) => (
         <TouchableOpacity
             onPress={onPress}
             className="flex-row items-center bg-white p-4 mb-3 rounded-2xl shadow-sm border border-gray-100"
         >
-            <View className="w-10 h-10 rounded-xl items-center justify-center bg-gray-50 mr-4">
-                <Icon size={20} color="#374151" />
+            <View className={`w-10 h-10 rounded-xl items-center justify-center ${bg} mr-4`}>
+                <Icon size={20} color={color} />
             </View>
             <View className="flex-1">
                 <Text className="text-gray-800 font-semibold">{title}</Text>
@@ -64,9 +83,25 @@ export default function ProfileScreen() {
                     <View className="w-24 h-24 bg-green-700 rounded-full items-center justify-center shadow-lg shadow-green-200 mb-4">
                         <User size={50} color="white" />
                     </View>
-                    <Text className="text-xl font-bold text-gray-800">{user?.email?.split('@')[0] || 'Épicier'}</Text>
-                    <Text className="text-gray-500">{user?.email}</Text>
+                    <Text className="text-xl font-bold text-gray-800">{user?.displayName || user?.email?.split('@')[0] || 'Épicier'}</Text>
+                    <View className="bg-green-50 px-3 py-1 rounded-full mt-1 border border-green-100">
+                        <Text className="text-green-700 text-xs font-bold uppercase">{userRole === 'admin' ? 'Administrateur' : 'Épicier'}</Text>
+                    </View>
                 </View>
+
+                {userRole === 'admin' && (
+                    <View className="mb-6">
+                        <Text className="text-gray-400 font-bold text-xs uppercase mb-3 ml-2">Administration</Text>
+                        <ProfileItem
+                            icon={LayoutDashboard}
+                            title="Espace Administration"
+                            subtitle="Gérer les épiciers et les comptes"
+                            onPress={() => router.push('/admin')}
+                            color="#15803d"
+                            bg="bg-green-50"
+                        />
+                    </View>
+                )}
 
                 <View className="mb-6">
                     <Text className="text-gray-400 font-bold text-xs uppercase mb-3 ml-2">Compte & Sécurité</Text>
@@ -100,3 +135,4 @@ export default function ProfileScreen() {
         </SafeAreaView>
     );
 }
+

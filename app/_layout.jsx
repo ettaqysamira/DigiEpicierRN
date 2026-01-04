@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useEffect, useState } from 'react';
@@ -49,6 +49,7 @@ function RootLayoutNav() {
   const [user, setUser] = useState(null);
   const [initializing, setInitializing] = useState(true);
   const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -62,24 +63,36 @@ function RootLayoutNav() {
 
   useEffect(() => {
     if (!initializing) {
-      console.log("🚀 REDIRECT CHECK - User state:", user ? "LoggedIn" : "LoggedOut");
-      if (user) {
-        console.log("-> Navigating to Dashboard");
-        router.replace('/(tabs)');
-      } else {
-        console.log("-> Navigating to Login");
+      const inAuthGroup = segments[0] === '(auth)';
+
+      if (!user && !inAuthGroup) {
+        console.log("-> Redirecting to Login");
         router.replace('/(auth)/login');
+      } else if (user && inAuthGroup) {
+        const adminEmails = ['ettaqy.samira@gmail.com', 'admin@hanooty.com', 'samira.ettaqy@gmail.com'];
+        if (adminEmails.includes(user.email?.toLowerCase())) {
+          console.log("-> Redirecting to Admin");
+          router.replace('/admin');
+        } else {
+          console.log("-> Redirecting to Tabs");
+          router.replace('/(tabs)');
+        }
       }
     }
-  }, [user, initializing]);
+  }, [user, initializing, segments]);
 
   if (initializing) return null;
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)/login" />
+        <Stack.Screen name="(auth)/signup" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="admin/index" />
+        <Stack.Screen name="admin/add-user" />
+        <Stack.Screen name="sales-history" />
+        <Stack.Screen name="notifications" />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>

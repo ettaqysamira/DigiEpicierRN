@@ -1,8 +1,8 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useRouter } from 'expo-router';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { Barcode, Camera as CameraIcon, ChevronDown, List, Save, X } from 'lucide-react-native';
-import React, { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { Barcode, Camera as CameraIcon, ChevronDown, List, Save, Scale, Tag, X } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -15,10 +15,13 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { db } from '../../firebaseConfig';
+import { auth, db } from '../../firebaseConfig';
 
 export default function AddProductScreen() {
     const router = useRouter();
+
+    const { id } = useLocalSearchParams();
+    const isEditing = !!id;
 
     const [name, setName] = useState('');
     const [category, setCategory] = useState('');
@@ -32,32 +35,122 @@ export default function AddProductScreen() {
     const [ingredients, setIngredients] = useState('');
     const [nutriments, setNutriments] = useState(null);
     const [nutriscore, setNutriscore] = useState('');
+    const [expirationDate, setExpirationDate] = useState('');
+    const [productSize, setProductSize] = useState(''); 
 
     const [permission, requestPermission] = useCameraPermissions();
     const [scanned, setScanned] = useState(false);
     const [isScannerVisible, setIsScannerVisible] = useState(false);
     const [isFetchingInfo, setIsFetchingInfo] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [expirationDate, setExpirationDate] = useState('');
+
+    useEffect(() => {
+        if (isEditing) {
+            fetchProductData();
+        }
+    }, [id]);
+
+    const fetchProductData = async () => {
+        setIsFetchingInfo(true);
+        try {
+            const docRef = doc(db, "products", id);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setName(data.name || '');
+                setCategory(data.category || '');
+                setPurchasePrice(data.purchasePrice?.toString() || '');
+                setSellingPrice(data.sellingPrice?.toString() || '');
+                setQuantity(data.quantity?.toString() || '');
+                setBarcode(data.barcode || '');
+                setDescription(data.description || '');
+                setProductImage(data.image || null);
+                setBrand(data.brand || '');
+                setIngredients(data.ingredients || '');
+                setNutriments(data.nutriments || null);
+                setNutriscore(data.nutriscore || '');
+                setExpirationDate(data.expirationDate || '');
+                setProductSize(data.productSize || '');
+            } else {
+                Alert.alert("Erreur", "Produit non trouvé");
+                router.back();
+            }
+        } catch (error) {
+            console.error("Error fetching product:", error);
+            Alert.alert("Erreur", "Impossible de charger les données du produit");
+        } finally {
+            setIsFetchingInfo(false);
+        }
+    };
 
     const fetchProductFromOFF = async (code) => {
         setIsFetchingInfo(true);
         try {
-            console.log("Fetching from Open Food Facts:", code);
-            const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json`);
+            console.log("Fetching from Moroccan Open Food Facts:", code);
+            const response = await fetch(`https://ma-fr.openfoodfacts.org/api/v2/product/${code}.json`);
             const data = await response.json();
 
             if (data.status === 1) {
                 const product = data.product;
-                setName(product.product_name || '');
-                setCategory(product.categories_tags ? product.categories_tags[0].replace('en:', '').replace('fr:', '') : '');
+
+                const categoryMapping = {
+                    'beverages': 'Boissons',
+                    'beverages-and-beverages-preparations': 'Boissons et préparations de boissons',
+                    'waters': 'Eaux',
+                    'spring-waters': 'Eaux de sources',
+                    'mineral-waters': 'Eaux minérales',
+                    'natural-mineral-waters': 'Eaux minérales naturelles',
+                    'unsweetened-beverages': 'Boissons sans sucre ajouté',
+                    'snacks': 'Snacks',
+                    'sweet-snacks': 'Snacks sucrés',
+                    'biscuits-and-cakes': 'Biscuits et gâteaux',
+                    'dairies': 'Produits laitiers',
+                    'fermented-foods': 'Produits fermentés',
+                    'fermented-milk-products': 'Produits laitiers fermentés',
+                    'plant-based-foods-and-beverages': 'Aliments et boissons à base de végétaux',
+                    'plant-based-foods': 'Aliments d\'origine végétale',
+                    'groceries': 'Épicerie'
+                };
+
+                let detectedCategory = '';
+                if (product.categories_tags && product.categories_tags.length > 0) {
+                    const frTag = product.categories_tags.find(tag => tag.startsWith('fr:'));
+                    if (frTag) {
+                        detectedCategory = frTag.replace('fr:', '').replace(/-/g, ' ');
+                    } else {
+                        const cleanTag = product.categories_tags[0].replace('en:', '').replace('fr:', '');
+
+                        if (categoryMapping[cleanTag]) {
+                            detectedCategory = categoryMapping[cleanTag];
+                        } else {
+                            detectedCategory = cleanTag.replace(/-/g, ' ');
+                        }
+                    }
+                } else if (product.categories) {
+                    detectedCategory = product.categories.split(',')[0].trim();
+                }
+
+                if (detectedCategory) {
+                    detectedCategory = detectedCategory.charAt(0).toUpperCase() + detectedCategory.slice(1);
+                }
+
+                setCategory(detectedCategory || 'Non classé');
+
+                const pName = product.product_name || '';
+                const pBrand = product.brands || '';
+                const pSize = product.quantity || '';
+
+                const fullDisplayName = [pName, pBrand, pSize].filter(val => val && val.trim() !== '').join(' - ');
+                setName(fullDisplayName);
+
                 setProductImage(product.image_url || null);
-                setBrand(product.brands || '');
+                setBrand(pBrand);
                 setIngredients(product.ingredients_text_fr || product.ingredients_text || '');
                 setNutriments(product.nutriments || null);
                 setNutriscore(product.nutriscore_grade || '');
                 setDescription(product.generic_name_fr || product.generic_name || '');
-                Alert.alert("Produit trouvé !", `${product.product_name} a été détecté.`);
+                setProductSize(pSize); 
+                Alert.alert("Produit trouvé !", `${fullDisplayName} a été détecté.`);
             } else {
                 Alert.alert("Non trouvé", "Ce produit n'existe pas dans la base Open Food Facts.");
             }
@@ -110,14 +203,20 @@ export default function AddProductScreen() {
                 description,
                 image: productImage,
                 expirationDate,
-                createdAt: serverTimestamp(),
+                productSize,
+                userId: auth.currentUser.uid,
             };
 
-            await addDoc(collection(db, "products"), productData);
+            if (isEditing) {
+                await updateDoc(doc(db, "products", id), productData);
+            } else {
+                productData.createdAt = serverTimestamp();
+                await addDoc(collection(db, "products"), productData);
+            }
 
             Alert.alert(
                 "Succès",
-                "Produit ajouté au stock !",
+                isEditing ? "Produit mis à jour !" : "Produit ajouté au stock !",
                 [{ text: "OK", onPress: () => router.back() }]
             );
         } catch (error) {
@@ -135,7 +234,9 @@ export default function AddProductScreen() {
                     <TouchableOpacity onPress={() => router.back()}>
                         <X size={24} color="white" />
                     </TouchableOpacity>
-                    <Text className="text-white text-xl font-bold">Ajouter un produit</Text>
+                    <Text className="text-white text-xl font-bold">
+                        {isEditing ? "Modifier le produit" : "Ajouter un produit"}
+                    </Text>
                     <TouchableOpacity
                         onPress={handleSaveProduct}
                         disabled={isSaving}
@@ -152,17 +253,23 @@ export default function AddProductScreen() {
             <ScrollView className="flex-1 px-4 pt-6" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
 
                 <Text className="text-gray-900 font-bold text-base mb-2">Photo du produit</Text>
-                <TouchableOpacity className="bg-white border border-gray-200 rounded-2xl h-48 items-center justify-center mb-6 shadow-sm border-dashed overflow-hidden">
+                <TouchableOpacity className="bg-white border border-gray-100 rounded-3xl h-56 items-center justify-center mb-6 shadow-sm overflow-hidden">
                     {productImage ? (
-                        <Image source={{ uri: productImage }} className="w-full h-full" resizeMode="cover" />
+                        <View className="w-full h-full bg-gray-50 items-center justify-center p-4">
+                            <Image
+                                source={{ uri: productImage }}
+                                className="w-full h-full"
+                                resizeMode="contain"
+                            />
+                        </View>
                     ) : (
-                        <>
-                            <View className="bg-green-50 p-4 rounded-full mb-3">
-                                <CameraIcon size={32} color="#2E7D32" />
+                        <View className="items-center">
+                            <View className="bg-green-50 p-5 rounded-full mb-3">
+                                <CameraIcon size={36} color="#2E7D32" />
                             </View>
                             <Text className="text-green-700 font-bold text-lg">Ajouter une photo</Text>
                             <Text className="text-gray-400 text-sm mt-1">Touchez pour sélectionner</Text>
-                        </>
+                        </View>
                     )}
                 </TouchableOpacity>
 
@@ -183,6 +290,34 @@ export default function AddProductScreen() {
                             placeholderTextColor="#9CA3AF"
                             value={name}
                             onChangeText={setName}
+                        />
+                    </View>
+                </View>
+
+                <Text className="text-gray-900 font-bold text-base mb-2">Marque</Text>
+                <View className="bg-white border border-gray-200 rounded-xl px-4 h-14 justify-center mb-5 shadow-sm">
+                    <View className="flex-row items-center">
+                        <Tag size={20} color="#9CA3AF" className="mr-3" />
+                        <TextInput
+                            placeholder="Ex: Centrale Laitière"
+                            className="flex-1 text-base text-gray-800"
+                            placeholderTextColor="#9CA3AF"
+                            value={brand}
+                            onChangeText={setBrand}
+                        />
+                    </View>
+                </View>
+
+                <Text className="text-gray-900 font-bold text-base mb-2">Format / Poids (ex: 450g, 1L)</Text>
+                <View className="bg-white border border-gray-200 rounded-xl px-4 h-14 justify-center mb-5 shadow-sm">
+                    <View className="flex-row items-center">
+                        <Scale size={20} color="#9CA3AF" className="mr-3" />
+                        <TextInput
+                            placeholder="Ex: 500g ou 33cl"
+                            className="flex-1 text-base text-gray-800"
+                            placeholderTextColor="#9CA3AF"
+                            value={productSize}
+                            onChangeText={setProductSize}
                         />
                     </View>
                 </View>
@@ -307,7 +442,7 @@ export default function AddProductScreen() {
                         <Save size={22} color="white" className="mr-2" />
                     )}
                     <Text className="text-white font-bold text-lg ml-2">
-                        {isSaving ? "Enregistrement..." : "Enregistrer le produit"}
+                        {isSaving ? "Enregistrement..." : (isEditing ? "Mettre à jour le produit" : "Enregistrer le produit")}
                     </Text>
                 </TouchableOpacity>
             </View>

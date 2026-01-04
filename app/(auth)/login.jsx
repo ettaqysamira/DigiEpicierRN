@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
@@ -15,12 +16,12 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import { auth } from '../../firebaseConfig';
+import { auth, db } from '../../firebaseConfig';
 
 const { width } = Dimensions.get('window');
 
 export default function LoginScreen() {
-    const [email, setEmail] = useState('ettaqy.samira@gmail.com');
+    const [email, setEmail] = useState('samira.ettaqy@gmail.com');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -29,9 +30,42 @@ export default function LoginScreen() {
     const handleLogin = async () => {
         if (email && password) {
             setIsLoading(true);
+            const adminEmails = ['ettaqy.samira@gmail.com', 'admin@hanooty.com', 'samira.ettaqy@gmail.com'];
+            const isAdminEmail = adminEmails.includes(email.toLowerCase());
+
             try {
-                await signInWithEmailAndPassword(auth, email, password);
-                router.replace('/(tabs)');
+                let userCredential;
+                try {
+                    userCredential = await signInWithEmailAndPassword(auth, email, password);
+                } catch (error) {
+                    if (isAdminEmail && (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential')) {
+                        try {
+                            console.log("Attempting to auto-provision admin account...");
+                            userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                            await updateProfile(userCredential.user, { displayName: "Administrateur" });
+                        } catch (signupError) {
+                            if (signupError.code === 'auth/email-already-in-use') {
+                                throw error; 
+                            }
+                            throw signupError;
+                        }
+                    } else {
+                        throw error;
+                    }
+                }
+
+                if (isAdminEmail) {
+                    await setDoc(doc(db, "users", userCredential.user.uid), {
+                        uid: userCredential.user.uid,
+                        name: "Administrateur",
+                        email: email.toLowerCase(),
+                        role: 'admin',
+                        updatedAt: new Date().toISOString()
+                    }, { merge: true });
+                    router.replace('/admin');
+                } else {
+                    router.replace('/(tabs)');
+                }
             } catch (error) {
                 console.error("Login error:", error);
                 let errorMessage = "Une erreur est survenue lors de la connexion.";
@@ -95,7 +129,7 @@ export default function LoginScreen() {
                             </View>
                         </View>
 
-*                        <View className="mt-4">
+                        *                        <View className="mt-4">
                             <Text className="text-gray-700 font-semibold mb-2 ml-1">Mot de passe</Text>
                             <View className="flex-row items-center bg-gray-50 rounded-2xl border border-gray-100 px-4 h-16 shadow-sm">
                                 <Lock size={22} color="#9ca3af" className="mr-3" />
@@ -130,6 +164,13 @@ export default function LoginScreen() {
                                 {isLoading ? 'Connexion...' : 'SE CONNECTER'}
                             </Text>
                         </TouchableOpacity>
+
+                        <View className="flex-row justify-center mt-6">
+                            <Text className="text-gray-500">Nouveau sur la plateforme ? </Text>
+                            <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
+                                <Text className="text-green-700 font-bold">Créer un compte</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
                     <View className="mt-12 items-center">

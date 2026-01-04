@@ -1,9 +1,11 @@
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
+import { collection, onSnapshot, query } from 'firebase/firestore';
 import { Bell, LogOut, PlusCircle, Scan } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
 import { Alert, Image, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { auth } from '../../firebaseConfig';
+import { auth, db } from '../../firebaseConfig';
 
 import ActionButtons from '../../components/dashboard/ActionButtons';
 import AlertCards from '../../components/dashboard/AlertCards';
@@ -14,6 +16,38 @@ import SummaryCard from '../../components/dashboard/SummaryCard';
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const [dailyTurnover, setDailyTurnover] = useState(0);
+
+  useEffect(() => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const q = query(collection(db, "sales"));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      let total = 0;
+      const currentUserId = auth.currentUser?.uid;
+
+      if (!currentUserId) {
+        setDailyTurnover(0);
+        return;
+      }
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const saleTimestamp = data.timestamp?.toDate ? data.timestamp.toDate() : (data.timestamp ? new Date(data.timestamp) : new Date(0));
+
+        if (data.userId === currentUserId && saleTimestamp >= startOfToday) {
+          total += Number(data.total || 0);
+        }
+      });
+      setDailyTurnover(total);
+    }, (error) => {
+      console.error("Error fetching daily turnover:", error);
+    });
+
+    return () => unsubscribe();
+  }, [auth.currentUser]);
 
   const handleLogout = async () => {
     console.log("🖱️ LOGOUT BUTTON PRESSED");
@@ -120,7 +154,11 @@ export default function DashboardScreen() {
           <ActionButtons />
 
           <View className="mt-6">
-            <SummaryCard title="Chiffre d'affaires du jour" value="52030 DH" trend="8.2%" color="green" />
+            <SummaryCard
+              title="Chiffre d'affaires du jour"
+              value={`${dailyTurnover.toLocaleString()} DH`}
+              color="green"
+            />
           </View>
 
           <RecentSales />

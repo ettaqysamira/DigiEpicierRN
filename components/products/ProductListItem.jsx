@@ -1,4 +1,4 @@
-import { HelpCircle } from 'lucide-react-native';
+import { AlertTriangle, HelpCircle } from 'lucide-react-native';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 const parseDate = (dateStr) => {
@@ -12,6 +12,14 @@ const getStatusStyles = (quantity, expirationDate) => {
     const exp = parseDate(expirationDate);
     const diffTime = exp - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 0) {
+        return {
+            bg: 'bg-red-50',
+            text: 'text-red-600',
+            label: 'Expiré'
+        };
+    }
 
     if (diffDays < 7) {
         return {
@@ -63,7 +71,11 @@ export default function ProductListItem({ product, onPress }) {
 
             <View className="items-end justify-between self-stretch py-1">
                 <View className={`flex-row items-center px-2 py-1 rounded-full ${bg}`}>
-                    <HelpCircle size={14} color={text === 'text-green-700' ? '#15803d' : '#ea580c'} />
+                    {label === 'En stock' ? (
+                        <HelpCircle size={14} color="#15803d" />
+                    ) : (
+                        <AlertTriangle size={14} color={label === 'Expiré' ? '#dc2626' : '#ea580c'} />
+                    )}
                     <Text className={`ml-1 text-[11px] font-bold ${text}`}>{label}</Text>
                 </View>
 
