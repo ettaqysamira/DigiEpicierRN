@@ -45,7 +45,7 @@ export default function LoginScreen() {
                             await updateProfile(userCredential.user, { displayName: "Administrateur" });
                         } catch (signupError) {
                             if (signupError.code === 'auth/email-already-in-use') {
-                                throw error; 
+                                throw error;
                             }
                             throw signupError;
                         }
@@ -165,12 +165,6 @@ export default function LoginScreen() {
                             </Text>
                         </TouchableOpacity>
 
-                        <View className="flex-row justify-center mt-6">
-                            <Text className="text-gray-500">Nouveau sur la plateforme ? </Text>
-                            <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
-                                <Text className="text-green-700 font-bold">Créer un compte</Text>
-                            </TouchableOpacity>
-                        </View>
                     </View>
 
                     <View className="mt-12 items-center">

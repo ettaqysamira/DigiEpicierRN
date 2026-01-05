@@ -1,8 +1,8 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { addDoc, collection, doc, getDocs, increment, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
-import { Banknote, Barcode, CreditCard, Landmark, Search, ShoppingCart, Smartphone, X } from 'lucide-react-native';
+import { Banknote, Barcode, Search, ShoppingCart, X } from 'lucide-react-native';
 import { useState } from 'react';
-import { FlatList, Modal, Alert as RNAlert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Modal, Alert as RNAlert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, db } from '../../firebaseConfig';
 
@@ -11,9 +11,6 @@ import CartSummary from '../../components/sales/CartSummary';
 
 const PAYMENT_METHODS = [
     { id: 'cash', label: 'Espèces', icon: Banknote },
-    { id: 'card', label: 'Carte', icon: CreditCard },
-    { id: 'wallet', label: 'Mobile', icon: Smartphone },
-    { id: 'bank', label: 'Virement', icon: Landmark },
 ];
 
 export default function SalesScreen() {
@@ -64,8 +61,10 @@ export default function SalesScreen() {
                 id: product.id,
                 name: product.name,
                 price: parseFloat(product.price),
+                purchasePrice: parseFloat(product.purchasePrice || 0),
                 quantity: 1,
                 stock: product.quantity,
+                category: product.category || 'Autre',
                 image: product.image
             }];
         });
@@ -164,7 +163,7 @@ export default function SalesScreen() {
     const tax = total * 0.20;
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-white">
             <SafeAreaView edges={['top']} className="bg-green-700">
                 <View className="px-5 pt-2 pb-6 rounded-b-[32px]">
                     <Text className="text-white text-2xl font-bold mb-5">Caisse / Vente</Text>
@@ -217,7 +216,7 @@ export default function SalesScreen() {
                     contentContainerStyle={{ paddingBottom: 300 }}
                     ListEmptyComponent={
                         <View className="items-center justify-center mt-20">
-                            <View className="bg-gray-100 p-8 rounded-full mb-4">
+                            <View className="bg-white p-8 rounded-full mb-4">
                                 <ShoppingCart size={48} color="#9CA3AF" />
                             </View>
                             <Text className="text-gray-400 text-lg font-medium">Le panier est vide</Text>
@@ -230,24 +229,10 @@ export default function SalesScreen() {
             {cart.length > 0 && (
                 <View className="absolute bottom-0 left-0 right-0 bg-white shadow-2xl">
                     <View className="px-4 pt-4 pb-2">
-                        <Text className="text-gray-900 font-bold text-sm mb-3 ml-1">Mode de paiement</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-                            {PAYMENT_METHODS.map((method) => (
-                                <TouchableOpacity
-                                    key={method.id}
-                                    onPress={() => setPaymentMethod(method.id)}
-                                    className={`flex-row items-center px-4 py-3 rounded-2xl mr-3 border ${paymentMethod === method.id
-                                        ? 'bg-green-700 border-green-700 shadow-md shadow-green-900/20'
-                                        : 'bg-white border-gray-100 shadow-sm'
-                                        }`}
-                                >
-                                    <method.icon size={18} color={paymentMethod === method.id ? 'white' : '#4B5563'} />
-                                    <Text className={`ml-2 font-bold ${paymentMethod === method.id ? 'text-white' : 'text-gray-600'}`}>
-                                        {method.label}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
+                        <View className="flex-row items-center bg-green-50 px-4 py-3 rounded-2xl border border-green-100 self-start ml-1">
+                            <Banknote size={18} color="#15803d" />
+                            <Text className="ml-2 font-bold text-green-800">Paiement en Espèces</Text>
+                        </View>
                     </View>
 
                     <CartSummary

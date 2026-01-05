@@ -6,10 +6,13 @@ export default function CartItem({ item, onIncrement, onDecrement, onRemove }) {
 
     return (
         <View className="bg-white p-3 rounded-2xl shadow-sm mb-3 flex-row items-center border border-gray-100">
-            <Image
-                source={{ uri: imageUrl }}
-                className="w-16 h-16 rounded-xl bg-gray-50 mr-4"
-            />
+            <View className="bg-white rounded-xl overflow-hidden mr-4">
+                <Image
+                    source={{ uri: imageUrl }}
+                    className="w-16 h-16"
+                    resizeMode="contain"
+                />
+            </View>
 
             <View className="flex-1">
                 <Text className="text-gray-900 font-bold text-base mb-1" numberOfLines={1}>{item.name}</Text>

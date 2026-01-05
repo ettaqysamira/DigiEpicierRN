@@ -12,7 +12,15 @@ const data = [
     { name: "Autres", value: 5, color: "#607D8B" },
 ];
 
-export default function StatsDonutChart() {
+export default function StatsDonutChart({ data = [] }) {
+    if (data.length === 0) {
+        return (
+            <View className="bg-white p-6 rounded-3xl shadow-sm mb-6 border border-gray-100 items-center justify-center h-48">
+                <Text className="text-gray-400 font-medium">Aucune donnée par catégorie</Text>
+            </View>
+        );
+    }
+
     const size = 180;
     const radius = size / 2;
     const strokeWidth = 50;
@@ -74,7 +82,7 @@ export default function StatsDonutChart() {
                                                 textAnchor="middle"
                                                 alignmentBaseline="middle"
                                             >
-                                                {`${item.value}%`}
+                                                {`${Math.round(item.value)}%`}
                                             </SvgText>
                                         )}
                                     </G>
@@ -91,7 +99,7 @@ export default function StatsDonutChart() {
                             <View style={{ backgroundColor: item.color }} className="w-4 h-4 rounded-full mr-3" />
                             <View>
                                 <Text className="text-gray-700 text-xs font-semibold">{item.name}</Text>
-                                <Text className="text-gray-400 text-[10px]">{item.value}%</Text>
+                                <Text className="text-gray-400 text-[10px]">{Math.round(item.value)}%</Text>
                             </View>
                         </View>
                     ))}

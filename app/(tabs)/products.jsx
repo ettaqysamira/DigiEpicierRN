@@ -15,8 +15,26 @@ export default function ProductsScreen() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('Tous');
+    const [selectedStatus, setSelectedStatus] = useState('Tous');
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
+
+    const getProductStatus = (expirationDate) => {
+        if (!expirationDate) return 'En stock';
+        try {
+            const [day, month, year] = expirationDate.split('/').map(Number);
+            const exp = new Date(year, month - 1, day);
+            const today = new Date();
+            const diffTime = exp - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays <= 0) return 'Expiré';
+            if (diffDays < 7) return 'Expire bientôt';
+            return 'En stock';
+        } catch (e) {
+            return 'En stock';
+        }
+    };
     const router = useRouter();
 
     const handleProductPress = (product) => {
@@ -101,11 +119,12 @@ export default function ProductsScreen() {
         const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             product.barcode?.includes(searchQuery);
         const matchesCategory = selectedCategory === 'Tous' || product.category === selectedCategory;
-        return matchesSearch && matchesCategory;
+        const matchesStatus = selectedStatus === 'Tous' || getProductStatus(product.expirationDate) === selectedStatus;
+        return matchesSearch && matchesCategory && matchesStatus;
     });
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-white">
             <StatusBar style="light" />
             <SafeAreaView edges={['top']} className="bg-green-700">
                 <ProductsHeader
@@ -113,6 +132,8 @@ export default function ProductsScreen() {
                     setSearchQuery={setSearchQuery}
                     selectedCategory={selectedCategory}
                     setSelectedCategory={setSelectedCategory}
+                    selectedStatus={selectedStatus}
+                    setSelectedStatus={setSelectedStatus}
                     categories={categories}
                 />
             </SafeAreaView>
@@ -140,6 +161,7 @@ export default function ProductsScreen() {
                             onPress={() => {
                                 setSearchQuery('');
                                 setSelectedCategory('Tous');
+                                setSelectedStatus('Tous');
                             }}
                             className="mt-4"
                         >

@@ -8,6 +8,14 @@ const parseDate = (dateStr) => {
 };
 
 const getStatusStyles = (quantity, expirationDate) => {
+    if (quantity <= 5) {
+        return {
+            bg: 'bg-orange-50',
+            text: 'text-orange-600',
+            label: 'Stock faible'
+        };
+    }
+
     const today = new Date();
     const exp = parseDate(expirationDate);
     const diffTime = exp - today;
@@ -23,8 +31,8 @@ const getStatusStyles = (quantity, expirationDate) => {
 
     if (diffDays < 7) {
         return {
-            bg: 'bg-orange-50',
-            text: 'text-orange-600',
+            bg: 'bg-yellow-50',
+            text: 'text-yellow-600',
             label: 'Expire bientôt'
         };
     }
@@ -45,11 +53,13 @@ export default function ProductListItem({ product, onPress }) {
             activeOpacity={0.7}
             className="bg-white p-3 rounded-2xl mb-3 flex-row items-center border border-gray-100 shadow-sm"
         >
-            <Image
-                source={{ uri: product.image || 'https://via.placeholder.com/100' }}
-                className="w-20 h-20 rounded-xl bg-gray-100 mr-4"
-                resizeMode="cover"
-            />
+            <View className="bg-white rounded-xl overflow-hidden mr-4">
+                <Image
+                    source={{ uri: product.image || 'https://via.placeholder.com/100' }}
+                    className="w-20 h-20"
+                    resizeMode="contain"
+                />
+            </View>
 
             <View className="flex-1 justify-center">
                 <Text className="text-gray-900 font-bold text-lg leading-tight mb-0.5" numberOfLines={1}>
@@ -74,7 +84,11 @@ export default function ProductListItem({ product, onPress }) {
                     {label === 'En stock' ? (
                         <HelpCircle size={14} color="#15803d" />
                     ) : (
-                        <AlertTriangle size={14} color={label === 'Expiré' ? '#dc2626' : '#ea580c'} />
+                        <AlertTriangle size={14} color={
+                            label === 'Expiré' ? '#dc2626' :
+                                label === 'Stock faible' ? '#ea580c' :
+                                    '#ca8a04'
+                        } />
                     )}
                     <Text className={`ml-1 text-[11px] font-bold ${text}`}>{label}</Text>
                 </View>

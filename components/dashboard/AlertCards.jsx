@@ -31,7 +31,7 @@ export default function AlertCards() {
 
         const unsubscribeDates = onSnapshot(qAll, (snapshot) => {
             const now = new Date();
-            now.setHours(0, 0, 0, 0); // Start of today
+            now.setHours(0, 0, 0, 0); 
 
             const tenDaysFromNow = new Date();
             tenDaysFromNow.setDate(now.getDate() + 10);

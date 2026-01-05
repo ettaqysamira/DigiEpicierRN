@@ -74,7 +74,7 @@ export default function ProductDetailsModal({ visible, product, onClose, onDelet
                 </SafeAreaView>
 
                 <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                    <View className="bg-gray-50 h-72 items-center justify-center p-4">
+                    <View className="bg-white h-72 items-center justify-center p-4">
                         <Image
                             source={{ uri: product.image || 'https://via.placeholder.com/300' }}
                             className="w-full h-full"

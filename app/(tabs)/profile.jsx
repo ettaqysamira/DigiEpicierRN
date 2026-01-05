@@ -1,15 +1,23 @@
 import { useRouter } from 'expo-router';
+import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { Bell, ChevronRight, HelpCircle, LayoutDashboard, LogOut, Settings, Shield, User } from 'lucide-react-native';
+import { Bell, ChevronRight, HelpCircle, LayoutDashboard, LogOut, Settings, Shield, User as UserIcon } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, db } from '../../firebaseConfig';
 
 export default function ProfileScreen() {
     const router = useRouter();
-    const user = auth.currentUser;
+    const [user, setUser] = useState(auth.currentUser);
     const [userRole, setUserRole] = useState('epicier');
+
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((updatedUser) => {
+            setUser(updatedUser);
+        });
+        return unsubscribe;
+    }, []);
 
     useEffect(() => {
         const fetchUserRole = async () => {
@@ -81,9 +89,9 @@ export default function ProfileScreen() {
             <ScrollView className="flex-1 px-5 pt-4">
                 <View className="items-center mb-8">
                     <View className="w-24 h-24 bg-green-700 rounded-full items-center justify-center shadow-lg shadow-green-200 mb-4">
-                        <User size={50} color="white" />
+                        <UserIcon size={50} color="white" />
                     </View>
-                    <Text className="text-xl font-bold text-gray-800">{user?.displayName || user?.email?.split('@')[0] || 'Épicier'}</Text>
+                    <Text className="text-xl font-bold text-gray-800">{user?.displayName || (user?.email ? user.email.split('@')[0] : 'Épicier')}</Text>
                     <View className="bg-green-50 px-3 py-1 rounded-full mt-1 border border-green-100">
                         <Text className="text-green-700 text-xs font-bold uppercase">{userRole === 'admin' ? 'Administrateur' : 'Épicier'}</Text>
                     </View>

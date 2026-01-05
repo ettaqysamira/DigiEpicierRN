@@ -3,13 +3,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDEB1dSs-DsK4eqBHjiHcwuISB73CaAjEU",
-  authDomain: "hanootyapp.firebaseapp.com",
-  projectId: "hanootyapp",
-  storageBucket: "hanootyapp.firebasestorage.app",
-  messagingSenderId: "754480733858",
-  appId: "1:754480733858:web:77970c9796a3e63a1b01fb",
-  measurementId: "G-HC1TFN5ZGE"
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 console.log("Initialisation de Firebase avec le projet:", firebaseConfig.projectId);

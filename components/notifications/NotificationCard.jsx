@@ -1,28 +1,87 @@
-import { AlertTriangle, CheckCircle2, Clock, Edit3, Package, TrendingDown } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { deleteDoc, doc } from 'firebase/firestore';
+import { AlertTriangle, Clock, Package, Trash2, TrendingDown } from 'lucide-react-native';
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Alert as RNAlert, Text, TouchableOpacity, View } from 'react-native';
+import { db } from '../../firebaseConfig';
 
-export default function NotificationCard({ type, title, time, description, product, detail, isUnread }) {
+export default function NotificationCard({ type, id, productId, title, time, description, product, detail, isUnread }) {
+    const router = useRouter();
     const isExpired = type === 'expired';
+    const isExpiringSoon = type === 'expiring_soon';
     const isLowStock = type === 'low_stock';
 
-    const iconColor = isExpired ? '#EF4444' : '#F57C00';
-    const bgColor = isExpired ? 'bg-red-50' : 'bg-orange-50';
-    const borderColor = isExpired ? 'border-red-100' : 'border-orange-100';
-    const tagColor = isExpired ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600';
-    const tagLabel = isExpired ? 'Urgent' : 'Important';
-    const dotColor = isExpired ? 'bg-red-500' : 'bg-orange-500';
+    const isUrgent = isExpired;
+
+    let iconColor, bgColor, borderColor, tagColor, dotColor;
+
+    if (isExpired) {
+        iconColor = '#EF4444';
+        bgColor = 'bg-red-50';
+        borderColor = 'border-red-100';
+        tagColor = 'bg-red-100 text-red-600';
+        dotColor = 'bg-red-500';
+    } else if (isExpiringSoon) {
+        iconColor = '#ca8a04';
+        bgColor = 'bg-yellow-50';
+        borderColor = 'border-yellow-100';
+        tagColor = 'bg-yellow-100 text-yellow-600';
+        dotColor = 'bg-yellow-500';
+    } else {
+        iconColor = '#F57C00';
+        bgColor = 'bg-orange-50';
+        borderColor = 'border-orange-100';
+        tagColor = 'bg-orange-100 text-orange-600';
+        dotColor = 'bg-orange-500';
+    }
+
+    const tagLabel = isExpired ? 'Expiré' : (isExpiringSoon ? 'Bientôt' : 'Stock');
+
+    const handleDelete = async () => {
+        if (!productId) return;
+
+        RNAlert.alert(
+            "Supprimer le produit",
+            "Voulez-vous vraiment supprimer ce produit expiré du stock ?",
+            [
+                { text: "Annuler", style: "cancel" },
+                {
+                    text: "Supprimer",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await deleteDoc(doc(db, "products", productId));
+                            RNAlert.alert("Succès", "Produit supprimé du stock.");
+                        } catch (error) {
+                            console.error("Delete error:", error);
+                            RNAlert.alert("Erreur", "Impossible de supprimer le produit.");
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleGoToStock = () => {
+        router.push('/(tabs)/products');
+    };
 
     return (
         <View className={`${bgColor} border ${borderColor} rounded-[28px] p-5 mb-4 shadow-sm relative overflow-hidden`}>
             <View className="flex-row justify-between items-start mb-3">
                 <View className="flex-row items-center">
                     <View className="bg-white p-2 rounded-xl mr-3 shadow-sm">
-                        {isExpired ? <AlertTriangle size={24} color={iconColor} /> : <Package size={24} color={iconColor} />}
+                        {isExpired ? (
+                            <AlertTriangle size={24} color={iconColor} />
+                        ) : isExpiringSoon ? (
+                            <Clock size={24} color={iconColor} />
+                        ) : (
+                            <Package size={24} color={iconColor} />
+                        )}
                     </View>
                     <View>
                         <Text className="text-gray-900 font-bold text-lg">{title}</Text>
-                        <Text className="text-gray-400 text-xs">Il y a {time}</Text>
+                        <Text className="text-gray-400 text-xs">{time}</Text>
                     </View>
                 </View>
                 <View className="flex-row items-center">
@@ -43,36 +102,39 @@ export default function NotificationCard({ type, title, time, description, produ
                     <Text className="text-gray-400 text-xs ml-2">Produit: <Text className="text-gray-600 font-medium">{product}</Text></Text>
                 </View>
                 <View className="flex-row items-center">
-                    {isExpired ? <Clock size={16} color="#EF4444" /> : <TrendingDown size={16} color="#F57C00" />}
-                    <Text className={`${isExpired ? 'text-red-500' : 'text-orange-600'} text-xs font-bold ml-2`}>{detail}</Text>
+                    {isExpired ? <Clock size={16} color="#EF4444" /> : isExpiringSoon ? <Clock size={16} color="#ca8a04" /> : <TrendingDown size={16} color="#F57C00" />}
+                    <Text className={`${isExpired ? 'text-red-500' : isExpiringSoon ? 'text-yellow-600' : 'text-orange-600'} text-xs font-bold ml-2`}>{detail}</Text>
                 </View>
             </View>
 
             <View className="flex-row justify-between space-x-3 gap-3">
                 {isExpired ? (
                     <>
-                        <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-white border border-green-600 h-12 rounded-xl">
-                            <CheckCircle2 size={18} color="#059669" />
-                            <Text className="text-green-700 font-bold ml-2">Marquer vendu</Text>
+                        <TouchableOpacity
+                            onPress={handleGoToStock}
+                            className="flex-1 flex-row items-center justify-center bg-white border border-green-600 h-12 rounded-xl"
+                        >
+                            <Package size={18} color="#059669" />
+                            <Text className="text-green-700 font-bold ml-2">Voir Stock</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-white border border-blue-600 h-12 rounded-xl">
-                            <Edit3 size={18} color="#2563EB" />
-                            <Text className="text-blue-700 font-bold ml-2">Modifier date</Text>
+                        <TouchableOpacity
+                            onPress={handleDelete}
+                            className="flex-1 flex-row items-center justify-center bg-white border border-red-600 h-12 rounded-xl"
+                        >
+                            <Trash2 size={18} color="#EF4444" />
+                            <Text className="text-red-700 font-bold ml-2">Supprimer</Text>
                         </TouchableOpacity>
                     </>
                 ) : (
-                    <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-orange-500 h-12 rounded-xl shadow-lg shadow-orange-500/30">
-                        <Plus size={18} color="white" />
-                        <Text className="text-white font-bold ml-2">Réapprovisionner</Text>
+                    <TouchableOpacity
+                        onPress={handleGoToStock}
+                        className={`flex-1 flex-row items-center justify-center ${isExpiringSoon ? 'bg-yellow-500 shadow-yellow-500/30' : 'bg-orange-500 shadow-orange-500/30'} h-12 rounded-xl shadow-lg`}
+                    >
+                        <Package size={18} color="white" />
+                        <Text className="text-white font-bold ml-2">Gérer Stock</Text>
                     </TouchableOpacity>
                 )}
             </View>
         </View>
     );
 }
-
-const Plus = ({ size, color }) => (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color, fontSize: 24, fontWeight: 'bold', lineHeight: 24 }}>+</Text>
-    </View>
-);

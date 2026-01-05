@@ -36,13 +36,14 @@ export default function AddProductScreen() {
     const [nutriments, setNutriments] = useState(null);
     const [nutriscore, setNutriscore] = useState('');
     const [expirationDate, setExpirationDate] = useState('');
-    const [productSize, setProductSize] = useState(''); 
+    const [productSize, setProductSize] = useState('');
 
     const [permission, requestPermission] = useCameraPermissions();
     const [scanned, setScanned] = useState(false);
     const [isScannerVisible, setIsScannerVisible] = useState(false);
     const [isFetchingInfo, setIsFetchingInfo] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isAutoProPhoto, setIsAutoProPhoto] = useState(true);
 
     useEffect(() => {
         if (isEditing) {
@@ -83,12 +84,31 @@ export default function AddProductScreen() {
         }
     };
 
+    const fetchProfessionalImage = async (code) => {
+        try {
+            console.log("Fetching pro image from UPCitemdb:", code);
+            const response = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${code}`);
+            const data = await response.json();
+
+            if (data.items && data.items.length > 0 && data.items[0].images && data.items[0].images.length > 0) {
+                return data.items[0].images[0];
+            }
+        } catch (error) {
+            console.error("UPCitemdb API Error:", error);
+        }
+        return null;
+    };
+
     const fetchProductFromOFF = async (code) => {
         setIsFetchingInfo(true);
         try {
             console.log("Fetching from Moroccan Open Food Facts:", code);
-            const response = await fetch(`https://ma-fr.openfoodfacts.org/api/v2/product/${code}.json`);
-            const data = await response.json();
+
+            const offPromise = fetch(`https://ma-fr.openfoodfacts.org/api/v2/product/${code}.json`);
+            const proImagePromise = isAutoProPhoto ? fetchProfessionalImage(code) : Promise.resolve(null);
+
+            const [offResponse, proImage] = await Promise.all([offPromise, proImagePromise]);
+            const data = await offResponse.json();
 
             if (data.status === 1) {
                 const product = data.product;
@@ -143,20 +163,26 @@ export default function AddProductScreen() {
                 const fullDisplayName = [pName, pBrand, pSize].filter(val => val && val.trim() !== '').join(' - ');
                 setName(fullDisplayName);
 
-                setProductImage(product.image_url || null);
+                setProductImage(proImage || product.image_front_url || product.image_url || null);
+
                 setBrand(pBrand);
                 setIngredients(product.ingredients_text_fr || product.ingredients_text || '');
                 setNutriments(product.nutriments || null);
                 setNutriscore(product.nutriscore_grade || '');
                 setDescription(product.generic_name_fr || product.generic_name || '');
-                setProductSize(pSize); 
-                Alert.alert("Produit trouvé !", `${fullDisplayName} a été détecté.`);
+                setProductSize(pSize);
+
+                if (proImage) {
+                    Alert.alert("Produit trouvé !", `${fullDisplayName} détecté avec une photo HD.`);
+                } else {
+                    Alert.alert("Produit trouvé !", `${fullDisplayName} a été détecté.`);
+                }
             } else {
-                Alert.alert("Non trouvé", "Ce produit n'existe pas dans la base Open Food Facts.");
+                Alert.alert("Non trouvé", "Ce produit n'existe pas dans la base.");
             }
         } catch (error) {
-            console.error("OFF API Error:", error);
-            Alert.alert("Erreur", "Impossible de contacter l'API Open Food Facts.");
+            console.error("API Error:", error);
+            Alert.alert("Erreur", "Impossible de récupérer les informations du produit.");
         } finally {
             setIsFetchingInfo(false);
         }
@@ -253,9 +279,9 @@ export default function AddProductScreen() {
             <ScrollView className="flex-1 px-4 pt-6" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
 
                 <Text className="text-gray-900 font-bold text-base mb-2">Photo du produit</Text>
-                <TouchableOpacity className="bg-white border border-gray-100 rounded-3xl h-56 items-center justify-center mb-6 shadow-sm overflow-hidden">
+                <TouchableOpacity className="bg-white border border-gray-100 rounded-3xl h-56 items-center justify-center mb-4 shadow-sm overflow-hidden">
                     {productImage ? (
-                        <View className="w-full h-full bg-gray-50 items-center justify-center p-4">
+                        <View className="w-full h-full bg-white items-center justify-center p-4">
                             <Image
                                 source={{ uri: productImage }}
                                 className="w-full h-full"
@@ -272,6 +298,19 @@ export default function AddProductScreen() {
                         </View>
                     )}
                 </TouchableOpacity>
+
+                <View className="flex-row items-center justify-between mb-6 px-1">
+                    <View className="flex-1 mr-4">
+                        <Text className="text-gray-900 font-bold text-sm">Photos Pro Automatiques</Text>
+                        <Text className="text-gray-400 text-xs">Arrière-plan blanc (UPCitemdb)</Text>
+                    </View>
+                    <TouchableOpacity
+                        onPress={() => setIsAutoProPhoto(!isAutoProPhoto)}
+                        className={`w-12 h-6 rounded-full p-1 ${isAutoProPhoto ? 'bg-green-600' : 'bg-gray-300'}`}
+                    >
+                        <View className={`w-4 h-4 bg-white rounded-full ${isAutoProPhoto ? 'ml-auto' : ''}`} />
+                    </TouchableOpacity>
+                </View>
 
                 {isFetchingInfo && (
                     <View className="bg-blue-50 p-4 rounded-xl flex-row items-center justify-center mb-6 border border-blue-100">
@@ -416,7 +455,7 @@ export default function AddProductScreen() {
                 </View>
 
                 <Text className="text-gray-900 font-bold text-base mb-2">Description</Text>
-                <View className="bg-gray-50 border border-gray-200 rounded-xl p-4 h-32 mb-6">
+                <View className="bg-white border border-gray-200 rounded-xl p-4 h-32 mb-6 shadow-sm">
                     <TextInput
                         placeholder="Informations supplémentaires..."
                         multiline

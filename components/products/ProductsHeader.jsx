@@ -8,12 +8,15 @@ export default function ProductsHeader({
     setSearchQuery,
     selectedCategory,
     setSelectedCategory,
+    selectedStatus,
+    setSelectedStatus,
     categories = []
 }) {
     const router = useRouter();
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
     const categoriesList = ['Tous', ...categories];
+    const statusList = ['Tous', 'Expiré', 'Expire bientôt', 'En stock'];
 
     return (
         <View className="bg-green-700 px-4 pt-4 pb-4 rounded-b-[32px]">
@@ -39,7 +42,7 @@ export default function ProductsHeader({
                 </View>
             </View>
 
-            <View className="flex-row items-center space-x-3">
+            <View className="flex-row items-center space-x-4">
                 <View className="flex-1 bg-white flex-row items-center rounded-2xl px-4 h-14 shadow-sm">
                     <Search size={22} color="#9CA3AF" />
                     <TextInput
@@ -57,7 +60,7 @@ export default function ProductsHeader({
                 >
                     <Filter size={20} color="white" />
                     <Text className="text-white font-bold ml-2 text-sm" numberOfLines={1}>
-                        {selectedCategory === 'Tous' ? 'Catégories' : selectedCategory}
+                        Filtres
                     </Text>
                     <ChevronDown size={16} color="white" className="ml-2" />
                 </TouchableOpacity>
@@ -70,49 +73,68 @@ export default function ProductsHeader({
                 onRequestClose={() => setIsDropdownVisible(false)}
             >
                 <TouchableOpacity
-                    className="flex-1 bg-black/50 justify-center items-center px-6"
+                    className="flex-1 bg-black/50 justify-center items-center px-4"
                     activeOpacity={1}
                     onPress={() => setIsDropdownVisible(false)}
                 >
-                    <View className="bg-white w-full max-h-[60%] rounded-[32px] overflow-hidden shadow-2xl">
+                    <View className="bg-white w-full max-h-[85%] rounded-[32px] overflow-hidden shadow-2xl">
                         <View className="flex-row justify-between items-center p-6 border-b border-gray-100">
-                            <Text className="text-gray-900 text-xl font-black">Filtrer par catégorie</Text>
+                            <Text className="text-gray-900 text-xl font-black">Filtres avancés</Text>
                             <TouchableOpacity onPress={() => setIsDropdownVisible(false)}>
                                 <X size={24} color="#374151" />
                             </TouchableOpacity>
                         </View>
 
-                        <ScrollView className="p-2">
-                            {categoriesList.map((cat, index) => (
-                                <TouchableOpacity
-                                    key={index}
-                                    onPress={() => {
-                                        setSelectedCategory(cat);
-                                        setIsDropdownVisible(false);
-                                    }}
-                                    className={`p-4 rounded-2xl mb-1 flex-row items-center justify-between ${selectedCategory === cat ? 'bg-green-50' : 'bg-transparent'}`}
-                                >
-                                    <Text className={`text-base ${selectedCategory === cat ? 'text-green-800 font-bold' : 'text-gray-600 font-medium'}`}>
-                                        {cat}
-                                    </Text>
-                                    {selectedCategory === cat && (
-                                        <View className="w-2 h-2 rounded-full bg-green-700" />
-                                    )}
-                                </TouchableOpacity>
-                            ))}
+                        <ScrollView className="p-4">
+                            <Text className="text-gray-400 font-bold uppercase text-[12px] tracking-widest mb-3 ml-2">État du produit</Text>
+                            <View className="flex-row flex-wrap mb-6">
+                                {statusList.map((status, index) => (
+                                    <TouchableOpacity
+                                        key={index}
+                                        onPress={() => setSelectedStatus(status)}
+                                        className={`px-4 py-2 rounded-xl mr-2 mb-2 border ${selectedStatus === status ? 'bg-green-700 border-green-700' : 'bg-gray-50 border-gray-100'}`}
+                                    >
+                                        <Text className={`font-bold text-sm ${selectedStatus === status ? 'text-white' : 'text-gray-600'}`}>
+                                            {status}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+
+                            <Text className="text-gray-400 font-bold uppercase text-[12px] tracking-widest mb-3 ml-2">Catégorie</Text>
+                            <View className="flex-row flex-wrap">
+                                {categoriesList.map((cat, index) => (
+                                    <TouchableOpacity
+                                        key={index}
+                                        onPress={() => setSelectedCategory(cat)}
+                                        className={`px-4 py-2 rounded-xl mr-2 mb-2 border ${selectedCategory === cat ? 'bg-green-700 border-green-700' : 'bg-gray-50 border-gray-100'}`}
+                                    >
+                                        <Text className={`font-bold text-sm ${selectedCategory === cat ? 'text-white' : 'text-gray-600'}`}>
+                                            {cat}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
                         </ScrollView>
 
-                        {selectedCategory !== 'Tous' && (
+                        <View className="p-4 bg-gray-50 border-t border-gray-100 flex-row space-x-4">
                             <TouchableOpacity
                                 onPress={() => {
                                     setSelectedCategory('Tous');
+                                    setSelectedStatus('Tous');
                                     setIsDropdownVisible(false);
                                 }}
-                                className="p-4 bg-gray-50 items-center justify-center"
+                                className="flex-1 p-4 rounded-2xl items-center justify-center border border-red-100"
                             >
-                                <Text className="text-red-500 font-bold">Réinitialiser le filtre</Text>
+                                <Text className="text-red-500 font-bold">Réinitialiser</Text>
                             </TouchableOpacity>
-                        )}
+                            <TouchableOpacity
+                                onPress={() => setIsDropdownVisible(false)}
+                                className="flex-1 p-4 bg-green-700 rounded-2xl items-center justify-center"
+                            >
+                                <Text className="text-white font-bold">Appliquer</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </TouchableOpacity>
             </Modal>
