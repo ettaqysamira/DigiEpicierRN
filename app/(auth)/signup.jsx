@@ -204,7 +204,7 @@ export default function SignupScreen() {
 
                         <View className="mt-12 items-center">
                             <Text className="text-gray-400 text-sm">
-                                Propulsé par Hanooty Digital
+                                 Hanooty Digital
                             </Text>
                         </View>
                     </View>

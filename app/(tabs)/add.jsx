@@ -302,7 +302,7 @@ export default function AddProductScreen() {
                 <View className="flex-row items-center justify-between mb-6 px-1">
                     <View className="flex-1 mr-4">
                         <Text className="text-gray-900 font-bold text-sm">Photos Pro Automatiques</Text>
-                        <Text className="text-gray-400 text-xs">Arrière-plan blanc (UPCitemdb)</Text>
+                        <Text className="text-gray-400 text-xs">Arrière-plan blanc</Text>
                     </View>
                     <TouchableOpacity
                         onPress={() => setIsAutoProPhoto(!isAutoProPhoto)}

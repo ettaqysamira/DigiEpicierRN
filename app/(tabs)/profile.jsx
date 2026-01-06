@@ -137,7 +137,7 @@ export default function ProfileScreen() {
                         className="w-24 h-6 opacity-30"
                         resizeMode="contain"
                     />
-                    <Text className="text-gray-300 text-[10px] mt-2">Propulsé par Hanooty Digital</Text>
+                    <Text className="text-gray-300 text-[10px] mt-2">Hanooty Digital</Text>
                 </View>
             </ScrollView>
         </SafeAreaView>

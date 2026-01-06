@@ -143,12 +143,7 @@ export default function AdminAddUser() {
                             </TouchableOpacity>
                         </View>
 
-                        <View className="bg-orange-50 p-6 rounded-3xl border border-orange-100 mt-10">
-                            <Text className="text-orange-800 font-bold mb-2">Note Importante :</Text>
-                            <Text className="text-orange-700 text-sm leading-5">
-                                La création d'un utilisateur vous déconnectera temporairement de votre session admin pour des raisons de sécurité Firebase. Vous devrez peut-être vous reconnecter après l'opération.
-                            </Text>
-                        </View>
+                        
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
